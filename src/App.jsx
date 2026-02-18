@@ -1,35 +1,48 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import GameScreen from "./components/GameScreen";
+import homescreenImg from "./assets/homescreen.jpg";
+import playBtnImg from "./assets/play_button.png";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [screen, setScreen] = useState("home");
+
+  if (screen === "game") return <GameScreen />;
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+  <div>
+    <img
+      src={homescreenImg}
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+        objectPosition: "center",
+        background: "#000",
+      }}
+    />
+    <img
+      src={playBtnImg}
+      onClick={() => setScreen("game")}
+      onMouseEnter={e => e.currentTarget.style.transform = "translateX(-50%) scale(1.05)"}
+      onMouseLeave={e => e.currentTarget.style.transform = "translateX(-50%) scale(1)"}
+      style={{
+        position: "absolute",
+        bottom: "10%",
+        left: "51%",
+        transform: "translateX(-50%)",
+        width: "20vw", // this is so the button is responsive and scales with the screen size, but we can adjust as needed
+        //minWidth: "300px", 
+        //maxWidth: "600px",  
+        cursor: "pointer",
+        zIndex: 1,
+        transition: "transform 0.15s ease",
+      }}
+    />
+  </div>
+);
 }
 
-export default App
+
