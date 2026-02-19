@@ -19,13 +19,22 @@ export default function AuthPage() {
     setBusy(true);
     setMsg("");
 
+    // ✅ minimal: enforce something@something.tld (rejects asdgnj@gmail)
+    const cleanEmail = email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      setBusy(false);
+      setMsg("Please enter a valid email (example: name@gmail.com).");
+      return;
+    }
+
     try {
       if (mode === "login") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
         if (error) throw error;
       } else {
         const { error } = await supabase.auth.signUp({
-          email,
+          email: cleanEmail,
           password,
           options: {
             data: { display_name: displayName },
@@ -94,7 +103,7 @@ export default function AuthPage() {
           cursor: "pointer",
         }}
       >
-        {mode === "login" ? "Need an account? Sign up" : "Already have an account? Sign in"}
+        {mode === "login" ? "OR Sign up" : "OR Sign in"}
       </button>
     </div>
   );

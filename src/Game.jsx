@@ -7,7 +7,7 @@ export default function Game() {
     <div style={{ padding: 24 }}>
       <h1>Game Screen</h1>
       <button onClick={() => nav("/")}>Back to Menu</button>
-      {/* Your real game content */}
+      {}
     </div>
   );
 }
