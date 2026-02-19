@@ -3,6 +3,7 @@ import GameScreen from "./components/GameScreen";
 import homescreenImg from "./assets/homescreen.jpg";
 import playBtnImg from "./assets/play_button.png";
 import settingsBtnImg from "./assets/settings_button.png";
+import infoBtnImg from "./assets/info_blank.png";
 
 export default function App() {
   const [screen, setScreen] = useState("home");
@@ -51,6 +52,20 @@ export default function App() {
         bottom: "10%",
         left: "63%",
         width: "15vw",
+        cursor: "pointer",
+        zIndex: 1,
+        transition: "transform 0.15s ease",
+      }}
+    />
+    <img
+      src={infoBtnImg}
+      onMouseEnter={e => e.currentTarget.style.transform = " scale(1.05)"}
+      onMouseLeave={e => e.currentTarget.style.transform = " scale(1)"}
+      style={{
+        position: "absolute",
+        bottom: "10%",
+        left: "22%",
+        width: "17vw",
         cursor: "pointer",
         zIndex: 1,
         transition: "transform 0.15s ease",
