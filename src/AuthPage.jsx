@@ -2,6 +2,8 @@ import { useState } from "react";
 import { supabase } from "./supabase";
 import { Navigate } from "react-router-dom";
 import { useSession } from "./useSession"; 
+import { useNavigate } from "react-router-dom";
+import { startGuestMode } from "./guestSession";
 
 export default function AuthPage() {
   const { session, loading } = useSession();  
@@ -11,6 +13,7 @@ export default function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const navigate = useNavigate();
 
   if (!loading && session) return <Navigate to="/" replace />;
 
@@ -19,7 +22,7 @@ export default function AuthPage() {
     setBusy(true);
     setMsg("");
 
-    // ✅ minimal: enforce something@something.tld (rejects asdgnj@gmail)
+    // ✅ minimal: enforce something@something.tld
     const cleanEmail = email.trim().toLowerCase();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(cleanEmail)) {
@@ -52,7 +55,9 @@ export default function AuthPage() {
 
   return (
     <div style={{ maxWidth: 420, margin: "60px auto", padding: 24 }}>
-      <h1 style={{ marginBottom: 12 }}>{mode === "login" ? "Sign in" : "Create account"}</h1>
+      <h1 style={{ marginBottom: 12 }}>
+        {mode === "login" ? "Sign in" : "Create account"}
+      </h1>
 
       <form onSubmit={onSubmit} style={{ display: "grid", gap: 12 }}>
         {mode === "signup" && (
@@ -79,10 +84,30 @@ export default function AuthPage() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
+
         <button disabled={busy} type="submit">
           {busy ? "..." : mode === "login" ? "Sign in" : "Sign up"}
         </button>
       </form>
+
+      {/* ✅ Play as Guest */}
+      <button
+        type="button"
+        onClick={() => {
+          startGuestMode();     // creates guest_profile in sessionStorage
+          navigate("/");        // go to Start Menu
+        }}
+        style={{
+          marginTop: 12,
+          width: "100%",
+          border: "1px solid #999",
+          padding: "8px 12px",
+          cursor: "pointer",
+          background: "transparent",
+        }}
+      >
+        Play as Guest
+      </button>
 
       {msg && <p style={{ marginTop: 12 }}>{msg}</p>}
 
