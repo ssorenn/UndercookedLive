@@ -103,7 +103,7 @@ export default function AuthPage() {
           border: "1px solid #999",
           padding: "8px 12px",
           cursor: "pointer",
-          background: "transparent",
+          background: "white",
         }}
       >
         Play as Guest

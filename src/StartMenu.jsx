@@ -4,7 +4,6 @@ import playBtnImg from "./assets/play_button.png";
 import settingsBtnImg from "./assets/settings_button.png";
 import infoBtnImg from "./assets/info_blank.png";
 import { supabase } from "./supabase";
-
 import { isGuestMode, getGuestProfile, endGuestMode, startGuestMode } from "./guestSession";
 
 export default function StartMenu() {
@@ -18,7 +17,7 @@ export default function StartMenu() {
       <img src={homescreenImg} style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }} />
       <img src={playBtnImg} onClick={() => { 
         startGuestMode();
-        navigate("/game")
+        navigate("/game");
       }}
         onMouseEnter={e => e.currentTarget.style.transform = "translateX(-50%) scale(1.05)"}
         onMouseLeave={e => e.currentTarget.style.transform = "translateX(-50%) scale(1)"}
@@ -37,28 +36,23 @@ export default function StartMenu() {
         style={{ position: "fixed", bottom: "10%", left: "22%", width: "17vw", cursor: "pointer", zIndex: 1, transition: "transform 0.15s ease" }}
       />
 
-      {/* Guest/auth controls */}
-      <div style={{ position: "fixed", top: 16, right: 16, zIndex: 2 }}>
-        {guestMode && (
+      {/* Only show if user is in guest mode or logged in */}
+      {guestMode && (
+        <div style={{ position: "fixed", top: 16, right: 16, zIndex: 2 }}>
           <p style={{ color: "black", margin: "0 0 8px 0" }}>
             Playing as Guest: <strong>{guest.display_name}</strong>
           </p>
-        )}
-        <button
-          onClick={async () => {
-            if (guestMode) {
+          <button
+            onClick={() => {
               endGuestMode();
               navigate("/auth");
-            } else {
-              await supabase.auth.signOut();
-              navigate("/auth");
-            }
-          }}
-          style={{ cursor: "pointer" }}
-        >
-          {guestMode ? "Exit Guest Mode" : "Log out"}
-        </button>
-      </div>
+            }}
+            style={{ cursor: "pointer" }}
+          >
+            Exit Guest Mode
+          </button>
+        </div>
+      )}
     </div>
   );
 }

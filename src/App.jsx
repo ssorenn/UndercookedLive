@@ -4,6 +4,7 @@ import Game from "./components/Game.jsx";
 import Settings from "./components/Settings.jsx";
 import Info from "./components/Info.jsx";
 import StartMenu from "./StartMenu.jsx";
+import AuthPage from "./AuthPage.jsx";
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
         <Route path="/game" element={<Game />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/info" element={<Info />} />
+        <Route path="/auth" element={<AuthPage />} />
         // continue adding routes if necessary, like a login/auth page, etc
       </Routes>
     </BrowserRouter>
