@@ -17,7 +17,7 @@ export default function StartMenu() {
       <img src={homescreenImg} style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }} />
       <img src={playBtnImg} onClick={() => { 
         startGuestMode();
-        navigate("/game");
+        navigate("/game")
       }}
         onMouseEnter={e => e.currentTarget.style.transform = "translateX(-50%) scale(1.05)"}
         onMouseLeave={e => e.currentTarget.style.transform = "translateX(-50%) scale(1)"}
