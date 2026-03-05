@@ -4,8 +4,8 @@ import storyImg from "../assets/storymode1.png";
 
 const DIALOGUE = [
   { speaker: "Narrator", text: "Long ago, the bears lived in harmony, with clean rivers, tall pines, and fresh mountain air." },
-  { speaker: "Narrator", text: "But slowly, trash began to pile up. Where there were once rocks and pebbles, now lay glass shards and crushed cans. Plastic bags floated down the river. The fish disappeared." },
-  { speaker: "Narrator", text: "The bears never noticed... until the day the water turned green and nothing grew." },
+  { speaker: "Narrator", text: "The careless bears threw their trash into the rivers, polluting the river and harming their environment." },
+  { speaker: "Narrator", text: "So slowly, trash began to pile up. Where there were once rocks and pebbles, now lay glass shards and crushed cans. Plastic bags floated down the river. The fish disappeared." },
   { speaker: "Bear Elder", text: "We took and took from this land. Now it is time we learn to give something back." },
   { speaker: "Narrator", text: "Can you help the bears restore their home before it's too late?" },
 ];
