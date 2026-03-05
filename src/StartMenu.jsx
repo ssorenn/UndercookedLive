@@ -3,7 +3,7 @@ import homescreenImg from "./assets/homescreen.jpg";
 import playBtnImg from "./assets/play_button.png";
 import settingsBtnImg from "./assets/settings_button.png";
 import infoBtnImg from "./assets/info_blank.png";
-import { supabase } from "./supabase";
+//import { supabase } from "./supabase";
 import { isGuestMode, getGuestProfile, endGuestMode, startGuestMode } from "./guestSession";
 
 export default function StartMenu() {
@@ -17,7 +17,7 @@ export default function StartMenu() {
       <img src={homescreenImg} style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }} />
       <img src={playBtnImg} onClick={() => { 
         startGuestMode();
-        navigate("/game")
+        navigate("/story1");
       }}
         onMouseEnter={e => e.currentTarget.style.transform = "translateX(-50%) scale(1.05)"}
         onMouseLeave={e => e.currentTarget.style.transform = "translateX(-50%) scale(1)"}
