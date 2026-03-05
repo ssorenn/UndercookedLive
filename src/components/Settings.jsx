@@ -2,29 +2,20 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import homescreenImg from "../assets/homescreen.jpg";
 
+import sushiSalmon from "../assets/sprites/sushi_salmon.png";
+import sushiShrimp from "../assets/sprites/sushi_shrimp.png";
+import sushiTamago from "../assets/sprites/sushi_tamago.png";
+
 export default function Settings() {
   const navigate = useNavigate();
-
-  // Load saved settings if they exist
   const savedSettings = JSON.parse(localStorage.getItem("gameSettings"));
 
-  const [masterVolume, setMasterVolume] = useState(
-    savedSettings?.masterVolume ?? 50
-  );
-  const [musicVolume, setMusicVolume] = useState(
-    savedSettings?.musicVolume ?? 50
-  );
-  const [soundEffects, setSoundEffects] = useState(
-    savedSettings?.soundEffects ?? 50
-  );
-  const [hardMode, setHardMode] = useState(
-    savedSettings?.hardMode ?? false
-  );
-  const [hints, setHints] = useState(
-    savedSettings?.hints ?? true
-  );
+  const [masterVolume, setMasterVolume] = useState(savedSettings?.masterVolume ?? 50);
+  const [musicVolume, setMusicVolume] = useState(savedSettings?.musicVolume ?? 50);
+  const [soundEffects, setSoundEffects] = useState(savedSettings?.soundEffects ?? 50);
+  const [hardMode, setHardMode] = useState(savedSettings?.hardMode ?? false);
+  const [hints, setHints] = useState(savedSettings?.hints ?? true);
 
-  // Save function
   const handleSave = () => {
     const settings = {
       masterVolume,
@@ -33,16 +24,44 @@ export default function Settings() {
       hardMode,
       hints,
     };
-
     localStorage.setItem("gameSettings", JSON.stringify(settings));
     alert("Settings Saved!");
   };
 
+  const handleReset = () => {
+    const defaults = {
+      masterVolume: 50,
+      musicVolume: 50,
+      soundEffects: 50,
+      hardMode: false,
+      hints: true,
+    };
+
+    setMasterVolume(defaults.masterVolume);
+    setMusicVolume(defaults.musicVolume);
+    setSoundEffects(defaults.soundEffects);
+    setHardMode(defaults.hardMode);
+    setHints(defaults.hints);
+
+    localStorage.setItem("gameSettings", JSON.stringify(defaults));
+  };
+
+  const sliderRows = [
+    { label: "Master Volume", value: masterVolume, setter: setMasterVolume, img: sushiSalmon },
+    { label: "Music Volume", value: musicVolume, setter: setMusicVolume, img: sushiShrimp },
+    { label: "Sound Effects", value: soundEffects, setter: setSoundEffects, img: sushiTamago },
+  ];
+
+  const toggleRows = [
+    { label: "Hard Mode", value: hardMode, setter: setHardMode },
+    { label: "Hints", value: hints, setter: setHints },
+  ];
+
   return (
     <div>
-      {/* Background */}
       <img
         src={homescreenImg}
+        alt=""
         style={{
           position: "fixed",
           top: 0,
@@ -50,11 +69,9 @@ export default function Settings() {
           width: "100%",
           height: "100%",
           objectFit: "cover",
-          objectPosition: "center",
         }}
       />
 
-      {/* Settings Panel */}
       <div
         style={{
           position: "fixed",
@@ -72,107 +89,116 @@ export default function Settings() {
           fontFamily: "'Fredoka One', cursive",
         }}
       >
-        <h1
-          style={{
-            textAlign: "center",
-            fontSize: "52px",
-            letterSpacing: "2px",
-            marginBottom: "40px",
-          }}
-        >
+        <h1 style={{ textAlign: "center", fontSize: "52px", marginBottom: "40px" }}>
           SETTINGS
         </h1>
 
-        {/* Sliders */}
-        {[
-          ["Master Volume", masterVolume, setMasterVolume],
-          ["Music Volume", musicVolume, setMusicVolume],
-          ["Sound Effects", soundEffects, setSoundEffects],
-        ].map(([label, value, setter]) => (
-          <div key={label} style={{ marginBottom: "30px" }}>
-            <div style={{ fontSize: "26px", marginBottom: "10px" }}>
-              {label}
+        {sliderRows.map((row) => (
+          <div key={row.label} style={{ marginBottom: "40px" }}>
+            <div style={{ fontSize: "26px", marginBottom: "12px" }}>{row.label}</div>
+
+            <div className="sliderWrap" style={{ ["--val"]: row.value / 100 }}>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={row.value}
+                className="sushiRange"
+                onChange={(e) => row.setter(Number(e.target.value))}
+                style={{
+                  background: `linear-gradient(
+                    to right,
+                    #7FBF3F 0%,
+                    #7FBF3F ${row.value}%,
+                    #dfe8d1 ${row.value}%,
+                    #dfe8d1 100%
+                  )`,
+                }}
+              />
+              <img className="sushiKnob" src={row.img} alt="" draggable={false} />
             </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={value}
-              onChange={(e) => setter(Number(e.target.value))}
-              style={{
-                width: "100%",
-                accentColor: "#8BC34A",
-              }}
-            />
           </div>
         ))}
 
-        {/* Toggles */}
-        {[
-          ["Hard Mode", hardMode, setHardMode],
-          ["Hints", hints, setHints],
-        ].map(([label, value, setter]) => (
+        {toggleRows.map((row) => (
           <div
-            key={label}
+            key={row.label}
             style={{
               display: "flex",
-              alignItems: "center",
               justifyContent: "space-between",
               marginBottom: "25px",
               fontSize: "26px",
             }}
           >
-            {label}
+            {row.label}
             <label className="switch">
-              <input
-                type="checkbox"
-                checked={value}
-                onChange={() => setter(!value)}
-              />
+              <input type="checkbox" checked={row.value} onChange={() => row.setter(!row.value)} />
               <span className="slider" />
             </label>
           </div>
         ))}
 
-        {/* Buttons */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginTop: "40px",
-          }}
-        >
-          <button
-            style={buttonStyle}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.transform = "scale(1.05)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.transform = "scale(1)")
-            }
-            onClick={handleSave}
-          >
-            Save
-          </button>
-
-          <button
-            style={buttonStyle}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.transform = "scale(1.05)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.transform = "scale(1)")
-            }
-            onClick={() => navigate("/")}
-          >
-            Exit
-          </button>
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "40px" }}>
+          <button style={buttonStyle} onClick={handleSave}>Save</button>
+          <button style={buttonStyle} onClick={handleReset}>Reset</button>
+          <button style={buttonStyle} onClick={() => navigate("/")}>Exit</button>
         </div>
       </div>
 
-      {/* Toggle Styles */}
       <style>
         {`
+        .sliderWrap{
+          position: relative;
+          width: 100%;
+          height: 64px;
+          --thumbSize: 56px;
+          --trackH: 14px;
+          --pad: calc(var(--thumbSize) / 2);
+          padding-left: var(--pad);
+          padding-right: var(--pad);
+          box-sizing: border-box;
+        }
+
+        .sushiRange{
+          position: absolute;
+          left: var(--pad);
+          width: calc(100% - (var(--pad) * 2));
+          top: 50%;
+          transform: translateY(-50%);
+          height: var(--trackH);
+          appearance: none;
+          border-radius: 10px;
+          outline: none;
+        }
+
+        .sushiRange::-webkit-slider-runnable-track{
+          height: var(--trackH);
+          border-radius: 10px;
+        }
+
+        .sushiRange::-webkit-slider-thumb{
+          appearance: none;
+          width: var(--thumbSize);
+          height: var(--thumbSize);
+          background: transparent;
+          border: none;
+          margin-top: calc((var(--trackH) - var(--thumbSize)) / 2);
+          cursor: pointer;
+        }
+
+        .sushiKnob{
+          position: absolute;
+          top: 50%;
+          left: calc(var(--pad) + (100% - (2 * var(--pad))) * var(--val));
+          transform: translate(-50%, -50%);
+          width: var(--thumbSize);
+          height: var(--thumbSize);
+          object-fit: contain;
+          pointer-events: none;
+          filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
+          user-select: none;
+        }
+
         .switch {
           position: relative;
           display: inline-block;
@@ -189,25 +215,21 @@ export default function Settings() {
         .slider {
           position: absolute;
           cursor: pointer;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
+          inset: 0;
           background-color: #ccc;
-          transition: 0.3s;
           border-radius: 34px;
         }
 
         .slider:before {
-          position: absolute;
           content: "";
+          position: absolute;
           height: 26px;
           width: 26px;
           left: 4px;
           bottom: 4px;
           background-color: white;
-          transition: 0.3s;
           border-radius: 50%;
+          transition: .3s;
         }
 
         input:checked + .slider {
@@ -217,7 +239,7 @@ export default function Settings() {
         input:checked + .slider:before {
           transform: translateX(26px);
         }
-      `}
+        `}
       </style>
     </div>
   );
@@ -232,5 +254,4 @@ const buttonStyle = {
   cursor: "pointer",
   boxShadow: "0 8px 15px rgba(0,0,0,0.15)",
   fontFamily: "'Fredoka One', cursive",
-  transition: "transform 0.1s ease",
 };
