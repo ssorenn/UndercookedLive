@@ -19,7 +19,6 @@ export default function App() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/info" element={<Info />} />
         <Route path="/auth" element={<AuthPage />} />
-        // continue adding routes if necessary, like a login/auth page, etc
       </Routes>
     </BrowserRouter>
   );
