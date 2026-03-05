@@ -88,12 +88,12 @@ export default function StartMenu() {
         onClick={() => {
           // If logged in,  play
           if (session) {
-            navigate("/game");
+            navigate("/story1");
             return;
           }
           // Otherwise ensure guest exists,  play
           if (!isGuestMode()) startGuestMode();
-          navigate("/game");
+          navigate("/story1");
         }}
         onMouseEnter={(e) =>
           (e.currentTarget.style.transform = "translateX(-50%) scale(1.05)")
