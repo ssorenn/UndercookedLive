@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 
-export default function Game() {
+export default function RiverGame() {
   const nav = useNavigate();
 
   return (
