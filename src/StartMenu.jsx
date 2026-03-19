@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import homescreenImg from "./assets/homescreen.jpg";
 import playBtnImg from "./assets/play_button.png";
 import settingsBtnImg from "./assets/settings_button.png";
-import infoBtnImg from "./assets/info_blank.png";
+import infoBtnImg from "./assets/info_button.png";
 
 import { supabase } from "./supabase";
 import {
@@ -208,8 +208,8 @@ export default function StartMenu() {
         style={{
           position: "fixed",
           bottom: "10%",
-          left: "22%",
-          width: "17vw",
+          left: "23%",
+          width: "15vw",
           cursor: "pointer",
           zIndex: 1,
           transition: "transform 0.15s ease",

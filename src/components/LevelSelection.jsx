@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import homescreenImg from "../assets/homescreen.jpg";
+import homescreenImg from "../assets/trees_background1.png";
 
 const LEVELS = [
   { id: 1, name: "Let's Fish!", stars: 3, unlocked: true },
@@ -27,8 +27,8 @@ function StarRating({ stars, unlocked }) {
         <span
           key={s}
           style={{
-            fontSize: "1.2rem",
-            color: unlocked && s <= stars ? "#FFD700" : "#cfcfcf",
+            fontSize: "1.1rem",
+            color: unlocked && s <= stars ? "#FFD700" : "rgba(220,220,220,0.75)",
             textShadow: unlocked && s <= stars ? "0 0 6px rgba(255,215,0,0.55)" : "none",
           }}
         >
@@ -45,62 +45,72 @@ function LevelCard({ level, navigate }) {
       onClick={() => level.unlocked && navigate(`/level/${level.id}`)}
       onMouseEnter={(e) => {
         if (level.unlocked) {
-          e.currentTarget.style.transform = "translateY(-4px) scale(1.02)";
-          e.currentTarget.style.boxShadow = "0 14px 26px rgba(0,0,0,0.18)";
+          e.currentTarget.style.transform = "translateY(-5px) scale(1.02)";
+          e.currentTarget.style.boxShadow = "0 16px 28px rgba(0,0,0,0.22)";
+          e.currentTarget.style.borderColor = "rgba(255,255,255,0.55)";
         }
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = "translateY(0) scale(1)";
         e.currentTarget.style.boxShadow = level.unlocked
-          ? "0 8px 16px rgba(0,0,0,0.12)"
-          : "0 5px 12px rgba(0,0,0,0.08)";
+          ? "0 10px 18px rgba(0,0,0,0.16)"
+          : "0 8px 14px rgba(0,0,0,0.12)";
+        e.currentTarget.style.borderColor = level.unlocked
+          ? "rgba(255,255,255,0.35)"
+          : "rgba(255,255,255,0.18)";
       }}
       style={{
         position: "relative",
-        background: level.unlocked
-          ? "linear-gradient(180deg, rgba(243,236,217,0.98) 0%, rgba(232,225,207,0.98) 100%)"
-          : "linear-gradient(180deg, rgba(220,220,220,0.45) 0%, rgba(198,198,198,0.35) 100%)",
+        width: "100%",
+        maxWidth: "220px",
+        height: "148px",
+        boxSizing: "border-box",
+        margin: "0 auto",
+        padding: "18px 14px",
         borderRadius: "24px",
-        padding: "22px 18px",
-        minHeight: "160px",
         textAlign: "center",
         cursor: level.unlocked ? "pointer" : "not-allowed",
-        boxShadow: level.unlocked
-          ? "0 8px 16px rgba(0,0,0,0.12)"
-          : "0 5px 12px rgba(0,0,0,0.08)",
-        transition: "transform 0.15s ease, box-shadow 0.15s ease",
-        filter: level.unlocked ? "none" : "grayscale(0.45) brightness(0.92)",
-        opacity: level.unlocked ? 1 : 0.72,
+        background: level.unlocked
+          ? "linear-gradient(180deg, rgba(250,244,225,0.95) 0%, rgba(232,225,207,0.92) 100%)"
+          : "linear-gradient(180deg, rgba(130,140,132,0.28) 0%, rgba(92,101,93,0.22) 100%)",
+        backdropFilter: "blur(8px)",
         border: level.unlocked
-          ? "2px solid rgba(255,255,255,0.45)"
-          : "2px solid rgba(255,255,255,0.25)",
+          ? "2px solid rgba(255,255,255,0.35)"
+          : "2px solid rgba(255,255,255,0.18)",
+        boxShadow: level.unlocked
+          ? "0 10px 18px rgba(0,0,0,0.16)"
+          : "0 8px 14px rgba(0,0,0,0.12)",
+        transition: "transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease",
+        filter: level.unlocked ? "none" : "grayscale(0.3)",
+        opacity: level.unlocked ? 1 : 0.82,
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
         overflow: "hidden",
+        alignSelf: "start",
       }}
     >
       <div
         style={{
           position: "absolute",
-          top: "-18px",
+          top: "-14px",
           right: "-10px",
-          width: "72px",
-          height: "72px",
+          width: "56px",
+          height: "56px",
           borderRadius: "50%",
           background: level.unlocked
-            ? "rgba(255,255,255,0.18)"
-            : "rgba(255,255,255,0.12)",
+            ? "rgba(255,255,255,0.16)"
+            : "rgba(255,255,255,0.08)",
           pointerEvents: "none",
         }}
       />
 
       <div
         style={{
-          fontSize: "38px",
+          fontSize: "34px",
           lineHeight: 1,
-          color: level.unlocked ? "#1f1f1f" : "#666",
-          textShadow: "0 2px 0 rgba(255,255,255,0.25)",
+          color: level.unlocked ? "#1f1f1f" : "rgba(255,255,255,0.75)",
+          textShadow: level.unlocked ? "0 2px 0 rgba(255,255,255,0.22)" : "none",
         }}
       >
         {level.id}
@@ -108,15 +118,15 @@ function LevelCard({ level, navigate }) {
 
       <div
         style={{
-          fontSize: "20px",
+          fontSize: "18px",
           marginTop: "8px",
           lineHeight: 1.2,
-          color: level.unlocked ? "#2f2b25" : "#666",
-          minHeight: "48px",
+          color: level.unlocked ? "#2f2b25" : "rgba(255,255,255,0.8)",
+          minHeight: "42px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          padding: "0 6px",
+          padding: "0 4px",
         }}
       >
         {level.name}
@@ -127,9 +137,9 @@ function LevelCard({ level, navigate }) {
       {!level.unlocked && (
         <div
           style={{
-            fontSize: "1.2rem",
-            marginTop: "10px",
-            opacity: 0.55,
+            fontSize: "1rem",
+            marginTop: "8px",
+            opacity: 0.75,
           }}
         >
           🔒
@@ -149,8 +159,7 @@ export default function LevelSelection() {
         alt="Level Selection Background"
         style={{
           position: "fixed",
-          top: 0,
-          left: 0,
+          inset: 0,
           width: "100%",
           height: "100%",
           objectFit: "cover",
@@ -161,42 +170,57 @@ export default function LevelSelection() {
       <div
         style={{
           position: "fixed",
+          inset: 0,
+          background: "linear-gradient(180deg, rgba(16,28,20,0.28) 0%, rgba(12,20,14,0.42) 100%)",
+        }}
+      />
+
+      <div
+        style={{
+          position: "fixed",
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: "74vw",
-          maxWidth: "1100px",
-          height: "74vh",
-          background: "linear-gradient(180deg, rgba(255,255,255,0.78) 0%, rgba(239,245,248,0.72) 100%)",
-          borderRadius: "36px",
-          padding: "34px 34px 28px 34px",
-          backdropFilter: "blur(18px)",
-          boxShadow: "0 25px 50px rgba(0,0,0,0.16)",
+          width: "76vw",
+          maxWidth: "1120px",
+          height: "76vh",
+          background: "linear-gradient(180deg, rgba(242,246,242,0.14) 0%, rgba(226,236,229,0.1) 100%)",
+          borderRadius: "38px",
+          padding: "30px 30px 24px 30px",
+          backdropFilter: "blur(16px)",
+          boxShadow: "0 28px 55px rgba(0,0,0,0.28)",
           zIndex: 1,
           fontFamily: "'Fredoka One', cursive",
-          border: "2px solid rgba(255,255,255,0.35)",
+          border: "1.8px solid rgba(255,255,255,0.2)",
           display: "flex",
           flexDirection: "column",
         }}
       >
-        <div style={{ textAlign: "center", marginBottom: "24px", flexShrink: 0 }}>
+        <div
+          style={{
+            textAlign: "center",
+            marginBottom: "20px",
+            flexShrink: 0,
+          }}
+        >
           <h1
             style={{
-              fontSize: "52px",
+              fontSize: "50px",
               letterSpacing: "1px",
               margin: 0,
-              color: "#111",
-              textShadow: "0 2px 0 rgba(255,255,255,0.35)",
+              color: "#f7f2df",
+              textShadow: "0 4px 18px rgba(0,0,0,0.28)",
             }}
           >
             Select Level
           </h1>
+
           <div
             style={{
-              marginTop: "10px",
+              marginTop: "8px",
               fontSize: "16px",
-              color: "#5f5a52",
-              opacity: 0.85,
+              color: "rgba(247,242,223,0.88)",
+              textShadow: "0 2px 10px rgba(0,0,0,0.18)",
             }}
           >
             Choose your next adventure
@@ -207,7 +231,8 @@ export default function LevelSelection() {
           style={{
             flex: 1,
             overflowY: "auto",
-            paddingRight: "8px",
+            paddingRight: "14px",
+            paddingLeft: "6px",
           }}
           className="levelSelectionScroll"
         >
@@ -215,8 +240,10 @@ export default function LevelSelection() {
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-              gap: "20px",
-              alignItems: "stretch",
+              gap: "26px 30px",
+              justifyItems: "center",
+              alignItems: "start",
+              padding: "8px 4px 12px 4px",
             }}
           >
             {LEVELS.map((level) => (
@@ -229,7 +256,7 @@ export default function LevelSelection() {
           style={{
             display: "flex",
             justifyContent: "center",
-            marginTop: "24px",
+            marginTop: "20px",
             flexShrink: 0,
           }}
         >
@@ -237,7 +264,7 @@ export default function LevelSelection() {
             style={buttonStyle}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = "scale(1.05)";
-              e.currentTarget.style.boxShadow = "0 12px 18px rgba(0,0,0,0.16)";
+              e.currentTarget.style.boxShadow = "0 14px 20px rgba(0,0,0,0.2)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = "scale(1)";
@@ -257,17 +284,17 @@ export default function LevelSelection() {
           }
 
           .levelSelectionScroll::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.28);
+            background: rgba(255,255,255,0.12);
             border-radius: 999px;
           }
 
           .levelSelectionScroll::-webkit-scrollbar-thumb {
-            background: rgba(153, 165, 133, 0.7);
+            background: rgba(203, 214, 180, 0.6);
             border-radius: 999px;
           }
 
           .levelSelectionScroll::-webkit-scrollbar-thumb:hover {
-            background: rgba(124, 138, 102, 0.85);
+            background: rgba(214, 226, 189, 0.82);
           }
         `}
       </style>
@@ -276,13 +303,14 @@ export default function LevelSelection() {
 }
 
 const buttonStyle = {
-  padding: "14px 38px",
+  padding: "14px 40px",
   fontSize: "20px",
   borderRadius: "18px",
   border: "none",
-  backgroundColor: "#e8e1cf",
+  background: "linear-gradient(180deg, rgba(243,236,217,0.98) 0%, rgba(232,225,207,0.96) 100%)",
   cursor: "pointer",
   boxShadow: "0 8px 15px rgba(0,0,0,0.15)",
   fontFamily: "'Fredoka One', cursive",
+  color: "#2f2b25",
   transition: "transform 0.1s ease, box-shadow 0.1s ease",
 };
