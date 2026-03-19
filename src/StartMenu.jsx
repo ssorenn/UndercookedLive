@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import homescreenImg from "./assets/homescreen.jpg";
 import playBtnImg from "./assets/play_button.png";
 import settingsBtnImg from "./assets/settings_button.png";
-import infoBtnImg from "./assets/info_blank.png";
+import infoBtnImg from "./assets/info_btn.png";
 
 import { supabase } from "./supabase";
 import {

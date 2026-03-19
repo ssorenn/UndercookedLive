@@ -12,6 +12,7 @@ import trash4Img     from "../../assets/sprites/river-game-sprites/trash4.png";
 import salmonImg     from "../../assets/sprites/river-game-sprites/salmon.png";
 import livesImg      from "../../assets/sprites/river-game-sprites/lives.png";
 import wavingBearImg from "../../assets/sprites/river-game-sprites/wavingbear.png";
+import settingsCogImg from "../../assets/settings_cog.png";
 
 const A = {
   grass:      grassImg,
@@ -36,7 +37,6 @@ const TRASH_SZ_MIN = 42, TRASH_SZ_MAX = 88, FISH_SZ = 60;
 const ITEM_MIN_Y_SEP = 70, MIN_ARRIVAL_GAP_MS = 900;
 const CATCHER_HALF = 36;
 
-// ── Wave / shimmer constants (stable across renders) ────────────────────────
 const WAVE_BANDS = [
   { yFrac: 0.18, amp: 5,   freq: 0.012, speed: 0.6,  alpha: 0.13, width: 2.5 },
   { yFrac: 0.32, amp: 4,   freq: 0.018, speed: 0.9,  alpha: 0.10, width: 2   },
@@ -50,7 +50,6 @@ const SHIMMER_LINES = Array.from({ length: 10 }, () => ({
   phase: Math.random() * Math.PI * 2, pulseSpeed: 0.8 + Math.random() * 1.2,
 }));
 
-// ── Injected CSS (avoids needing a separate .css file) ──────────────────────
 const STYLES = `
   @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800&display=swap');
 
@@ -67,7 +66,6 @@ const STYLES = `
   }
 
   #rr-scene { position:absolute; inset:0; overflow:hidden; z-index:1; }
-
   #rr-river { position:absolute; left:0; right:0; overflow:hidden; }
   #rr-river-canvas { position:absolute; inset:0; width:100%; height:100%; }
 
@@ -87,6 +85,9 @@ const STYLES = `
   .rr-item img { width:100%; height:100%; object-fit:contain; pointer-events:none; }
   @keyframes rrFloat { from { left:105%; } to { left:-80px; } }
   @keyframes rrBob   { 0%,100% { margin-top:0; } 50% { margin-top:-9px; } }
+
+  /* Freeze items when paused */
+  .rr-item.paused { animation-play-state: paused !important; }
 
   #rr-catcher-zone {
     position:absolute; left:38px; width:80px; height:80px;
@@ -177,7 +178,7 @@ const STYLES = `
   #rr-toggle-btn:hover  { transform:scale(1.06); border-color:rgba(255,255,255,0.7); }
   #rr-toggle-btn:active { transform:scale(0.94); }
   #rr-toggle-btn.rr-trash-mode { border-color:rgba(255,100,100,0.7); background:rgba(231,76,60,0.25); }
-  #rr-toggle-btn.rr-fish-mode  { border-color:rgba(79,195,232,0.7);  background:rgba(79,195,232,0.22); color:#e8e1cf; text-shadow:none; }
+  #rr-toggle-btn.rr-fish-mode  { border-color:rgba(79,195,232,0.7); background:rgba(79,195,232,0.22); color:#e8e1cf; text-shadow:none; }
   .rr-mode-icon { width:30px; height:30px; object-fit:contain; }
 
   #rr-hard-badge {
@@ -193,7 +194,6 @@ const STYLES = `
     50%     { box-shadow:0 0 18px rgba(231,76,60,0.9); }
   }
 
-  /* Settings */
   #rr-settings-btn {
     position:fixed; top:14px; right:14px; z-index:30;
     width:46px; height:46px;
@@ -209,12 +209,9 @@ const STYLES = `
   #rr-settings-btn:hover  { transform:scale(1.1) rotate(22deg); border-color:rgba(255,255,255,0.7); }
   #rr-settings-btn:active { transform:scale(0.92); }
 
-  /* Popups */
   .rr-popup {
-    position:absolute;
-    font-family:'Fredoka One',cursive; font-size:1.55rem;
-    pointer-events:none;
-    animation:rrPopUp 0.9s ease forwards; z-index:25;
+    position:absolute; font-family:'Fredoka One',cursive; font-size:1.55rem;
+    pointer-events:none; animation:rrPopUp 0.9s ease forwards; z-index:25;
     text-shadow:0 2px 6px rgba(0,0,0,0.5);
   }
   .rr-popup-img {
@@ -229,33 +226,6 @@ const STYLES = `
     55%  { opacity:1; transform:translateY(-48px) scale(1.2); }
     100% { opacity:0; transform:translateY(-80px) scale(0.85); }
   }
-
-  /* Overlay */
-  #rr-overlay {
-    position:fixed; inset:0; background:rgba(4,12,30,0.9);
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    z-index:50; gap:14px;
-  }
-  #rr-overlay h2 {
-    font-family:'Fredoka One',cursive;
-    font-size:clamp(2rem,5vw,3.2rem); color:white;
-  }
-  #rr-overlay p {
-    color:rgba(255,255,255,0.62);
-    font-size:clamp(0.88rem,2vw,1.08rem);
-    text-align:center; max-width:400px; line-height:1.65;
-  }
-  .rr-overlay-btn {
-    margin-top:8px; background:#e8e1cf; color:black; border:none;
-    border-radius:50px; padding:13px 42px;
-    font-family:'Fredoka One',cursive; font-size:1.25rem;
-    cursor:pointer; transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1);
-  }
-  .rr-overlay-btn:hover  { transform:scale(1.08); }
-  .rr-overlay-btn.rr-hard-btn { background:#c0392b; color:white; }
-
-  .rr-intro-assets { display:flex; align-items:center; gap:14px; flex-wrap:wrap; justify-content:center; margin:4px 0; }
-  .rr-intro-assets img { width:38px; height:38px; object-fit:contain; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4)); }
 
   #rr-hard-row {
     display:flex; align-items:center; gap:12px;
@@ -284,10 +254,7 @@ const STYLES = `
   #rr-hard-row.on #rr-hard-text { color:#ff7070; }
 
   #rr-timer-display { color:#fff; }
-  #rr-timer-display.urgent {
-    color:#ff6b6b;
-    animation:rrTimerPulse 0.6s ease-in-out infinite;
-  }
+  #rr-timer-display.urgent { color:#ff6b6b; animation:rrTimerPulse 0.6s ease-in-out infinite; }
   @keyframes rrTimerPulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.15); } }
 
   #rr-hint {
@@ -300,11 +267,6 @@ const STYLES = `
     padding:5px 16px; border-radius:50px;
     border:1px solid rgba(255,255,255,0.15);
   }
-
-  #rr-overlay {
-    position:fixed; inset:0; z-index:50; background: transparent;
-  }
-  #rr-overlay.hidden { display:none; }
 `;
 
 export default function RiverGame() {
@@ -312,38 +274,41 @@ export default function RiverGame() {
   const [showSettings, setShowSettings] = useState(false);
   const [dialogueIndex, setDialogueIndex] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
+  const [endScreen, setEndScreen] = useState(null);
 
-  // ── Refs for mutable game state ──────────────────────────────────────────
   const stateRef = useRef({
     score: 0, lives: 3, trashCombo: 0, fishCount: 0,
-    timeLeft: 90, mode: "trash", gameRunning: false, hardMode: false,
+    timeLeft: 60, mode: "trash", gameRunning: false, hardMode: false,
     spawnDelay: 1800, itemSpeed: 9000, catcherY: 0,
     activeItems: [], spawnId: 0,
     spawnInterval: null, diffInterval: null, timerInterval: null,
     rafId: null,
-    // layout
     W: 0, H: 0, BANK_H: 0, RIVER_TOP: 0, RIVER_H: 0, CATCH_X: 100,
   });
 
-  // DOM refs
-  const rootRef           = useRef(null);
-  const canvasRef         = useRef(null);
-  const riverRef          = useRef(null);
-  const catcherRef        = useRef(null);
-  const catcherZoneRef    = useRef(null);
-  const sceneRef          = useRef(null);
-  const overlayRef        = useRef(null);
-  const scoreDisplayRef   = useRef(null);
-  const livesDisplayRef   = useRef(null);
-  const comboDisplayRef   = useRef(null);
-  const fishValRef        = useRef(null);
-  const timerDisplayRef   = useRef(null);
-  const hardBadgeRef      = useRef(null);
-  const toggleBtnRef      = useRef(null);
-  const modeIconRef       = useRef(null);
-  const modeLabelRef      = useRef(null);
-  const hardRowRef        = useRef(null);
-  const catchLineRef      = useRef(null);
+  const rootRef         = useRef(null);
+  const canvasRef       = useRef(null);
+  const riverRef        = useRef(null);
+  const catcherRef      = useRef(null);
+  const catcherZoneRef  = useRef(null);
+  const sceneRef        = useRef(null);
+  const scoreDisplayRef = useRef(null);
+  const livesDisplayRef = useRef(null);
+  const comboDisplayRef = useRef(null);
+  const fishValRef      = useRef(null);
+  const timerDisplayRef = useRef(null);
+  const hardBadgeRef    = useRef(null);
+  const toggleBtnRef    = useRef(null);
+  const modeIconRef     = useRef(null);
+  const modeLabelRef    = useRef(null);
+  const hardRowRef      = useRef(null);
+  const catchLineRef    = useRef(null);
+
+  // Stable callback refs so resumeGame can call latest versions without stale closures
+  const spawnItemRef   = useRef(null);
+  const rampUpRef      = useRef(null);
+  const updateTimerRef = useRef(null);
+  const endGameRef     = useRef(null);
 
   // ── Layout ────────────────────────────────────────────────────────────────
   const layout = useCallback(() => {
@@ -353,7 +318,6 @@ export default function RiverGame() {
     s.RIVER_TOP = s.BANK_H;
     s.RIVER_H   = s.H - s.BANK_H * 2;
     s.CATCH_X   = 100;
-
     if (riverRef.current) {
       riverRef.current.style.top    = s.RIVER_TOP + "px";
       riverRef.current.style.height = s.RIVER_H + "px";
@@ -375,16 +339,13 @@ export default function RiverGame() {
     if (!canvas) return;
     const { RIVER_H } = stateRef.current;
     if (!RIVER_H) { stateRef.current.rafId = requestAnimationFrame(drawRiver); return; }
-
     const ctx = canvas.getContext("2d");
     const t = ts * 0.001;
     const cw = canvas.width, ch = canvas.height;
-
     const grad = ctx.createLinearGradient(0, 0, 0, ch);
     grad.addColorStop(0, "#72d4f7"); grad.addColorStop(0.35, "#3aaee0");
     grad.addColorStop(0.72, "#1e8bbf"); grad.addColorStop(1, "#0e6898");
     ctx.fillStyle = grad; ctx.fillRect(0, 0, cw, ch);
-
     ctx.save();
     WAVE_BANDS.forEach(w => {
       const y0 = w.yFrac * ch, offset = t * w.speed * 60;
@@ -401,7 +362,6 @@ export default function RiverGame() {
       ctx.strokeStyle = wg; ctx.lineWidth = w.width; ctx.stroke();
     });
     ctx.restore();
-
     ctx.save();
     SHIMMER_LINES.forEach(s => {
       const pulse = 0.5 + 0.5 * Math.sin(t * s.pulseSpeed + s.phase);
@@ -414,17 +374,14 @@ export default function RiverGame() {
       ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x1 + len, y); ctx.stroke();
     });
     ctx.restore();
-
     const topFoam = ctx.createLinearGradient(0, 0, 0, 20);
     topFoam.addColorStop(0, "rgba(255,255,255,0.55)");
     topFoam.addColorStop(1, "rgba(255,255,255,0)");
     ctx.fillStyle = topFoam; ctx.fillRect(0, 0, cw, 20);
-
     const botFoam = ctx.createLinearGradient(0, ch - 20, 0, ch);
     botFoam.addColorStop(0, "rgba(255,255,255,0)");
     botFoam.addColorStop(1, "rgba(255,255,255,0.55)");
     ctx.fillStyle = botFoam; ctx.fillRect(0, ch - 20, cw, 20);
-
     stateRef.current.rafId = requestAnimationFrame(drawRiver);
   }, []);
 
@@ -460,7 +417,7 @@ export default function RiverGame() {
   const updateTrashCombo = useCallback(() => {
     const { trashCombo } = stateRef.current;
     if (comboDisplayRef.current)
-      comboDisplayRef.current.textContent = trashCombo >= 3 ? `🔥 x${trashCombo}` : trashCombo > 0 ? `✨ x${trashCombo}` : "—";
+      comboDisplayRef.current.textContent = trashCombo >= 3 ? ` x${trashCombo}` : trashCombo > 0 ? `✨ x${trashCombo}` : "—";
   }, []);
 
   const updateFishCount = useCallback(() => {
@@ -533,15 +490,27 @@ export default function RiverGame() {
     return ((startX - CATCH_X) / (startX - endX)) * dur;
   }, []);
 
+  // ── endGame ───────────────────────────────────────────────────────────────
+  const endGame = useCallback((timeUp = false) => {
+    const s = stateRef.current;
+    s.gameRunning = false;
+    setGameStarted(false);
+    s.activeItems.length = 0;
+    clearInterval(s.spawnInterval);
+    clearInterval(s.diffInterval);
+    clearInterval(s.timerInterval);
+    if (timerDisplayRef.current) timerDisplayRef.current.classList.remove("urgent");
+    document.querySelectorAll(".rr-item").forEach(i => i.remove());
+    setEndScreen({ timeUp, score: s.score, fishCount: s.fishCount, hardMode: s.hardMode });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const spawnItem = useCallback(() => {
     const s = stateRef.current;
     if (!s.gameRunning) return;
-
     const isTrash = Math.random() > 0.45;
     const assets  = isTrash ? TRASH_ASSETS : FISH_ASSETS;
     const src     = assets[Math.floor(Math.random() * assets.length)];
     const type    = isTrash ? "trash" : "fish";
-
     const riverCap = Math.floor(s.RIVER_H * 0.22);
     let sz;
     if (isTrash) {
@@ -550,32 +519,25 @@ export default function RiverGame() {
     } else {
       sz = Math.min(FISH_SZ, riverCap);
     }
-
     const dur      = s.itemSpeed + Math.random() * 2500;
     const arrivalT = performance.now() + arrivalDelay(dur);
-
     const tooSoon = s.activeItems.some(a => Math.abs(a.arrivalTime - arrivalT) < MIN_ARRIVAL_GAP_MS);
     if (tooSoon) { setTimeout(spawnItem, 120); return; }
-
     const itemRiverY = pickSafeY(sz);
     const itemSceneY = s.RIVER_TOP + itemRiverY;
     const id = ++s.spawnId;
     s.activeItems.push({ id, arrivalTime: arrivalT, riverY: itemRiverY });
-
     const el = document.createElement("div");
     el.className = "rr-item";
     el.style.width  = sz + "px";
     el.style.height = sz + "px";
     el.style.top    = (itemRiverY - sz / 2) + "px";
-
     const img = document.createElement("img");
     img.src = src; img.alt = type;
     el.appendChild(img);
-
     const bob = 1.4 + Math.random() * 1.2;
     el.style.animationDuration = `${dur}ms, ${bob}s`;
     if (riverRef.current) riverRef.current.appendChild(el);
-
     const check = setInterval(() => {
       if (!stateRef.current.gameRunning) {
         clearInterval(check); removeTracked(id); el.remove(); return;
@@ -583,14 +545,12 @@ export default function RiverGame() {
       const rect  = el.getBoundingClientRect();
       const itemX = rect.left + rect.width / 2;
       const { CATCH_X, catcherY, mode } = stateRef.current;
-
       if (itemX < CATCH_X + 20 && itemX > CATCH_X - 30) {
         clearInterval(check); removeTracked(id);
         const inRange    = Math.abs(catcherY - itemSceneY) < CATCHER_HALF + 24;
         const caught     = inRange && ((type === "trash" && mode === "trash") || (type === "fish" && mode === "fish"));
         const wrongCatch = inRange && !caught;
         el.remove();
-
         if (caught) {
           if (type === "trash") {
             stateRef.current.trashCombo++;
@@ -619,14 +579,14 @@ export default function RiverGame() {
             setTimeout(() => c.classList.remove("rr-miss-anim"), 400);
           }
           popup(wrongCatch ? "✖ WRONG!" : "✖ MISSED!", "#e74c3c", CATCH_X, itemSceneY - 30);
-          if (stateRef.current.lives <= 0) endGame(); // eslint-disable-line no-use-before-define
+          if (stateRef.current.lives <= 0) endGame();
         }
       } else if (itemX < -80) {
         clearInterval(check); removeTracked(id); el.remove();
       }
     }, 40);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [arrivalDelay, pickSafeY, removeTracked, updateFishCount, updateLives, updateScore, updateTrashCombo, popup, popupImg]);
+  }, [arrivalDelay, pickSafeY, removeTracked, updateFishCount, updateLives, updateScore, updateTrashCombo, popup, popupImg, endGame]);
 
   const rampUp = useCallback(() => {
     const s = stateRef.current;
@@ -637,51 +597,63 @@ export default function RiverGame() {
     s.spawnInterval = setInterval(spawnItem, s.spawnDelay);
   }, [spawnItem]);
 
-  // ── endGame ───────────────────────────────────────────────────────────────
-  const endGame = useCallback((timeUp = false) => {
+  // Keep stable refs current so resumeGame never uses stale closures
+  useEffect(() => { spawnItemRef.current   = spawnItem;   }, [spawnItem]);
+  useEffect(() => { rampUpRef.current      = rampUp;      }, [rampUp]);
+  useEffect(() => { updateTimerRef.current = updateTimer; }, [updateTimer]);
+  useEffect(() => { endGameRef.current     = endGame;     }, [endGame]);
+
+  // ── Pause ─────────────────────────────────────────────────────────────────
+  const pauseGame = useCallback(() => {
     const s = stateRef.current;
+    if (!s.gameRunning) return;
     s.gameRunning = false;
-    setGameStarted(false);
-    s.activeItems.length = 0;
     clearInterval(s.spawnInterval);
     clearInterval(s.diffInterval);
     clearInterval(s.timerInterval);
-    if (timerDisplayRef.current) timerDisplayRef.current.classList.remove("urgent");
-    document.querySelectorAll(".rr-item").forEach(i => i.remove());
-
-    if (!overlayRef.current) return;
-    overlayRef.current.classList.remove("hidden");
-    overlayRef.current.innerHTML = `
-      <div style="font-size:clamp(3rem,8vw,5rem)">${timeUp ? "⏰" : ""}</div>
-      <h2>${timeUp ? "Time's Up!" : "Game Over!"}</h2>
-      <p>
-        ${s.hardMode ? '<span style="color:#ff7070;font-family:\'Fredoka One\',cursive;font-size:1.1em">🔥 Hard Mode</span><br>' : ""}
-        Score: <strong style="color:#f1c40f;font-size:1.3em">${s.score}</strong><br>
-        Salmon saved: <strong style="color:#4fc3e8;font-size:1.3em">${s.fishCount}</strong>
-        <img src="${A.salmon}" style="width:28px;height:28px;object-fit:contain;vertical-align:middle;margin-left:4px"><br>
-        <span style="color:rgba(255,255,255,0.5);font-size:0.9em">${timeUp ? "The river is cleaner already! 🌊" : ""}</span>
-      </p>
-      <button class="rr-overlay-btn ${s.hardMode ? "rr-hard-btn" : ""}" id="rr-restart-btn">Play Again!</button>
-    `;
-    overlayRef.current.style.display = "flex";
-    document.getElementById("rr-restart-btn")?.addEventListener("click", startGame); // eslint-disable-line no-use-before-define
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    document.querySelectorAll(".rr-item").forEach(el => el.classList.add("paused"));
   }, []);
+
+  // ── Resume ────────────────────────────────────────────────────────────────
+  const resumeGame = useCallback(() => {
+    const s = stateRef.current;
+    if (s.gameRunning) return;
+    s.gameRunning = true;
+    document.querySelectorAll(".rr-item").forEach(el => el.classList.remove("paused"));
+    s.spawnInterval = setInterval(() => spawnItemRef.current?.(), s.spawnDelay);
+    s.diffInterval  = setInterval(() => rampUpRef.current?.(), 8000);
+    s.timerInterval = setInterval(() => {
+      s.timeLeft--;
+      updateTimerRef.current?.();
+      if (s.timeLeft <= 0) endGameRef.current?.(true);
+    }, 1000);
+  }, []);
+
+  // ── Open/close settings with pause/resume ─────────────────────────────────
+  const openSettings = useCallback(() => {
+    pauseGame();
+    setShowSettings(true);
+  }, [pauseGame]);
+
+  const closeSettings = useCallback(() => {
+    setShowSettings(false);
+    resumeGame();
+  }, [resumeGame]);
 
   // ── startGame ─────────────────────────────────────────────────────────────
   const startGame = useCallback(() => {
     const s = stateRef.current;
-    s.score = 0; s.lives = 3; s.trashCombo = 0; s.fishCount = 0; s.timeLeft = 90;
+    s.score = 0; s.lives = 3; s.trashCombo = 0; s.fishCount = 0; s.timeLeft = 60;
     s.activeItems.length = 0; s.spawnId = 0;
     const cfg = s.hardMode ? CFG.hard : CFG.normal;
     s.spawnDelay = cfg.spawnDelay; s.itemSpeed = cfg.itemSpeed;
     s.gameRunning = true;
     setGameStarted(true);
+    setEndScreen(null);
     layout(); setMode("trash");
     updateScore(0); updateLives(); updateTrashCombo(); updateTimer();
     if (fishValRef.current) fishValRef.current.textContent = "0";
     if (hardBadgeRef.current) hardBadgeRef.current.style.display = s.hardMode ? "inline-block" : "none";
-    if (overlayRef.current) overlayRef.current.classList.add("hidden");
     document.querySelectorAll(".rr-item").forEach(i => i.remove());
     s.spawnInterval = setInterval(spawnItem, s.spawnDelay);
     s.diffInterval  = setInterval(rampUp, 8000);
@@ -693,27 +665,15 @@ export default function RiverGame() {
     spawnItem();
   }, [layout, setMode, updateScore, updateLives, updateTrashCombo, updateTimer, spawnItem, rampUp, endGame]);
 
-  // ── Settings helpers ──────────────────────────────────────────────────────
-  const openSettings  = useCallback(() => setShowSettings(true),  []);
-  const closeSettings = useCallback(() => setShowSettings(false), []);
-
   // ── Mount / unmount ───────────────────────────────────────────────────────
   useEffect(() => {
-    // Inject styles
     const styleEl = document.createElement("style");
     styleEl.textContent = STYLES;
     document.head.appendChild(styleEl);
-
     layout();
     window.addEventListener("resize", layout);
-
-    // Start river animation
     stateRef.current.rafId = requestAnimationFrame(drawRiver);
-
-    // Initial lives render
     updateLives();
-
-    // Mouse / touch
     const onMouseMove = (e) => {
       const s = stateRef.current;
       if (!s.gameRunning) return;
@@ -731,11 +691,9 @@ export default function RiverGame() {
       if (e.code === "Space") { e.preventDefault(); if (stateRef.current.gameRunning) toggleMode(); }
       if (e.code === "Escape") closeSettings();
     };
-
     document.addEventListener("mousemove", onMouseMove);
     document.addEventListener("touchmove", onTouchMove, { passive: false });
     document.addEventListener("keydown", onKeyDown);
-
     return () => {
       document.head.removeChild(styleEl);
       window.removeEventListener("resize", layout);
@@ -758,40 +716,42 @@ export default function RiverGame() {
     const startBtn = document.getElementById("rr-start-btn");
     if (startBtn) {
       startBtn.classList.toggle("rr-hard-btn", s.hardMode);
-      startBtn.textContent = s.hardMode ? "🔥 Start Hard!" : "Start!";
+      startBtn.textContent = s.hardMode ? " Start Hard!" : "Start!";
     }
   }, []);
 
   const INTRO_DIALOGUE = [
-    { speaker: "Narrator",   text: "The river is in trouble! Trash is flowing downstream and salmon can't get through!" },
-    { speaker: "Narrator",   text: "Move your mouse up and down to position your catcher along the left edge of the river." },
-    { speaker: "Bear", text: "Switch between the Trash Can and Fish Net using SPACE or the button above. Only catch what matches!" },
-    { speaker: "Bear", text: "Build a trash streak for bonus points,and save as many salmon as you can. Every miss costs a life. Good luck!" },
+    { speaker: "Narrator", text: "Oh no! The river is full of trash — clean it up while catching salmon for our hungry customers!" },
+    { speaker: "Narrator", text: "Move your mouse up and down to position your catcher along the left edge of the river." },
+    { speaker: "Bear",     text: "Switch between the Trash Can and Fish Net using SPACE or the button above. Only catch what matches!" },
+    { speaker: "Bear",     text: "Build a trash streak for bonus points, and catch as many salmon as you can. Good luck!" },
   ];
 
   const isLastDialogue = dialogueIndex === INTRO_DIALOGUE.length - 1;
   const currentLine = INTRO_DIALOGUE[dialogueIndex];
 
   const handleDialogueNext = () => {
-    if (!isLastDialogue) {
-      setDialogueIndex(i => i + 1);
-    } else {
-      setDialogueIndex(0);
-      startGame();
-    }
+    if (!isLastDialogue) setDialogueIndex(i => i + 1);
+    else { setDialogueIndex(0); startGame(); }
   };
   const handleDialogueBack = (e) => {
     e.stopPropagation();
     if (dialogueIndex > 0) setDialogueIndex(i => i - 1);
   };
 
+  // ── Shared button style ───────────────────────────────────────────────────
+  const btnStyle = {
+    padding: "14px 38px", fontSize: "20px", borderRadius: "18px",
+    border: "none", backgroundColor: "#e8e1cf", cursor: "pointer",
+    boxShadow: "0 8px 15px rgba(0,0,0,0.15)",
+    fontFamily: "'Fredoka One', cursive", transition: "transform 0.1s ease",
+  };
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div id="rr-root" ref={rootRef}>
-      {/* Background */}
       <img src={A.grass} id="rr-bg" alt="" />
 
-      {/* Scene */}
       <div id="rr-scene" ref={sceneRef}>
         <div id="rr-river" ref={riverRef}>
           <canvas id="rr-river-canvas" ref={canvasRef} />
@@ -802,7 +762,7 @@ export default function RiverGame() {
         </div>
       </div>
 
-      {/* HUD — hidden during intro */}
+      {/* HUD */}
       <div id="rr-hud" style={{ display: gameStarted ? "flex" : "none" }}>
         <div className="rr-hud-block">
           <span className="rr-hud-label">Score</span>
@@ -828,154 +788,161 @@ export default function RiverGame() {
         </div>
         <div className="rr-hud-block">
           <span className="rr-hud-label">Time</span>
-          <span className="rr-hud-val" id="rr-timer-display" ref={timerDisplayRef}>1:30</span>
+          <span className="rr-hud-val" id="rr-timer-display" ref={timerDisplayRef}>1:00</span>
         </div>
       </div>
 
-      {/* Settings gear — hidden during intro */}
+      {/* Settings gear — only during gameplay, pauses on click */}
       {gameStarted && (
-        <button id="rr-settings-btn" title="Settings" onClick={openSettings}>⚙️</button>
+        <button id="rr-settings-btn" title="Settings" onClick={openSettings}>
+          <img src={settingsCogImg} alt="settings" style={{ width: "26px", height: "26px", objectFit: "contain" }} />
+        </button>
       )}
 
       {/* Settings modal */}
       {showSettings && (
         <div style={{ position: "fixed", inset: 0, zIndex: 60 }}>
-          <Settings onClose={() => setShowSettings(false)} />
+          <Settings onClose={closeSettings} />
         </div>
       )}
 
-      {/* Hint — hidden during intro */}
       {gameStarted && (
         <div id="rr-hint">Move mouse · SPACE or click button to switch modes</div>
       )}
 
-      {/* Intro / game-over overlay */}
-      <div id="rr-overlay" ref={overlayRef}>
-
-        {/* Skip button */}
-        <button
-          onClick={() => { setDialogueIndex(0); startGame(); }}
-          style={{
-            position: "absolute", top: "3%", right: "3%",
-            padding: "14px 38px", fontSize: "20px", borderRadius: "18px",
-            border: "none", backgroundColor: "#e8e1cf", cursor: "pointer",
-            boxShadow: "0 8px 15px rgba(0,0,0,0.15)",
-            fontFamily: "'Fredoka One', cursive", transition: "transform 0.1s ease",
-          }}
-          onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"}
-          onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
-        >
-          Skip →
-        </button>
-
-        {/* Level menu button */}
-        <button
-          onClick={() => navigate("/level-selection")}
-          style={{
-            position: "absolute", top: "3%", left: "3%",
-            padding: "14px 38px", fontSize: "20px", borderRadius: "18px",
-            border: "none", backgroundColor: "#e8e1cf", cursor: "pointer",
-            boxShadow: "0 8px 15px rgba(0,0,0,0.15)",
-            fontFamily: "'Fredoka One', cursive", transition: "transform 0.1s ease",
-          }}
-          onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"}
-          onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
-        >
-          ← Level Menu
-        </button>
-
-        {/* Hard mode toggle */}
-        <div id="rr-hard-row" ref={hardRowRef} onClick={handleHardRowClick}
-          style={{ position: "absolute", top: "3%", left: "50%", transform: "translateX(-50%)" }}>
-          <div id="rr-hard-switch"><div id="rr-hard-knob" /></div>
-          <span id="rr-hard-text">Hard Mode</span>
-        </div>
-
-        {/* Waving bear — bottom left, behind dialogue box */}
-        <img
-          src={wavingBearImg}
-          alt="waving bear"
-          style={{
-            position: "absolute", bottom: 0, left: "2%",
-            height: "55vh", maxHeight: "420px",
-            objectFit: "contain", zIndex: 1,
-            filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.2))",
-            pointerEvents: "none",
-          }}
-        />
-
-        {/* Dialogue box — sits above the bear */}
-        <div
-          onClick={handleDialogueNext}
-          style={{
-            position: "absolute", bottom: "4%", left: "50%",
-            transform: "translateX(-50%)", width: "72vw", maxWidth: "860px",
-            cursor: "pointer", zIndex: 2,
-          }}
-        >
-          {/* Speaker tag */}
+      {/* ── END SCREEN ───────────────────────────────────────────────── */}
+      {endScreen && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{
-            display: "inline-block", background: "#f5eedc",
-            border: "3px solid #c8b89a", borderBottom: "none",
-            borderRadius: "14px 14px 0 0", padding: "6px 22px",
-            fontFamily: "'Fredoka One', cursive", fontSize: "18px",
-            color: "#5a4a35", marginLeft: "24px",
-            boxShadow: "0 -2px 8px rgba(0,0,0,0.06)",
+            width: "65vw", maxWidth: "860px",
+            background: "rgba(255,255,255,0.82)", borderRadius: "35px", padding: "50px",
+            backdropFilter: "blur(18px)", boxShadow: "0 25px 50px rgba(0,0,0,0.18)",
+            fontFamily: "'Fredoka One', cursive", textAlign: "center",
           }}>
-            {currentLine.speaker}
-          </div>
-
-          {/* Text box */}
-          <div style={{
-            background: "#fdf6e3", border: "3px solid #c8b89a",
-            borderRadius: "0 18px 18px 18px", padding: "24px 32px",
-            boxShadow: "0 8px 30px rgba(0,0,0,0.18)",
-            textAlign: "left",
-          }}>
-            <p style={{
-              fontFamily: "'Fredoka One', cursive",
-              fontSize: "clamp(16px, 1.8vw, 22px)", color: "#3d2e1e",
-              margin: 0, lineHeight: 1.6, minHeight: "60px",
-              textAlign: "left", whiteSpace: "normal", wordBreak: "normal",
-            }}>
-              {currentLine.text}
-            </p>
-
-            {/* Bottom row */}
-            <div style={{ display: "flex", alignItems: "center", marginTop: "16px", gap: "10px" }}>
-              <button
-                onClick={handleDialogueBack}
-                disabled={dialogueIndex === 0}
-                onMouseEnter={e => { if (dialogueIndex > 0) e.currentTarget.style.transform = "scale(1.1)"; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
-                style={{
-                  background: "transparent", border: "none", padding: "4px 12px",
-                  fontFamily: "'Fredoka One', cursive", fontSize: "16px",
-                  color: dialogueIndex === 0 ? "#c8b89a" : "#a08c72",
-                  cursor: dialogueIndex === 0 ? "not-allowed" : "pointer",
-                  transition: "transform 0.1s ease", flexShrink: 0,
-                }}
-              >◀</button>
-
-              {INTRO_DIALOGUE.map((_, i) => (
-                <div key={i} style={{
-                  width: i === dialogueIndex ? "20px" : "8px", height: "8px",
-                  borderRadius: "999px",
-                  background: i === dialogueIndex ? "#c8b89a" : "#e0d5c0",
-                  transition: "width 0.2s ease", flexShrink: 0,
-                }} />
+            <div style={{ fontSize: "clamp(2.5rem,6vw,4rem)", marginBottom: "8px" }}>
+              {endScreen.timeUp ? "⏰" : "🐟"}
+            </div>
+            <h1 style={{ fontSize: "clamp(28px,5vw,52px)", margin: "0 0 8px" }}>
+              {endScreen.timeUp ? "Time's Up!" : "Game Over!"}
+            </h1>
+            {endScreen.hardMode && (
+              <div style={{ color: "#e74c3c", fontSize: "18px", marginBottom: "12px" }}>🔥 Hard Mode</div>
+            )}
+            <div style={{ display: "flex", gap: "8px", justifyContent: "center", margin: "18px 0" }}>
+              {[1, 2, 3].map(s => (
+                <span key={s} style={{ fontSize: "clamp(2rem,5vw,3.2rem)", color: "#FFD700", textShadow: "0 0 10px rgba(255,215,0,0.7)" }}>★</span>
               ))}
-
-              <span style={{
-                marginLeft: "auto", fontFamily: "'Fredoka One', cursive",
-                fontSize: "14px", color: "#a08c72", flexShrink: 0,
-              }}>
-                {isLastDialogue ? "Let's go! ▶" : "Click to continue ▶"}
-              </span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "center", gap: "32px", margin: "18px 0 32px", flexWrap: "wrap" }}>
+              <div style={{ background: "#e8e1cf", borderRadius: "22px", padding: "18px 32px", boxShadow: "0 8px 15px rgba(0,0,0,0.1)" }}>
+                <div style={{ fontSize: "14px", letterSpacing: "2px", opacity: 0.6 }}>SCORE</div>
+                <div style={{ fontSize: "clamp(28px,4vw,42px)", color: "#5a4a35" }}>{endScreen.score}</div>
+              </div>
+              <div style={{ background: "#e8e1cf", borderRadius: "22px", padding: "18px 32px", boxShadow: "0 8px 15px rgba(0,0,0,0.1)" }}>
+                <div style={{ fontSize: "14px", letterSpacing: "2px", opacity: 0.6 }}>SALMON SAVED</div>
+                <div style={{ fontSize: "clamp(28px,4vw,42px)", color: "#4fc3e8", display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
+                  {endScreen.fishCount}
+                  <img src={A.salmon} style={{ width: "36px", height: "36px", objectFit: "contain" }} alt="salmon" />
+                </div>
+              </div>
+            </div>
+            <div style={{ display: "flex", justifyContent: "center", gap: "16px", flexWrap: "wrap" }}>
+              <button onClick={() => navigate("/level-selection")}
+                onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"}
+                onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
+                style={btnStyle}>← Level Menu</button>
+              <button onClick={() => navigate("/level/2")}
+                onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"}
+                onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
+                style={{ ...btnStyle, backgroundColor: "#7FBF3F", color: "white" }}>Next Level →</button>
             </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* ── INTRO OVERLAY ────────────────────────────────────────────── */}
+      {!gameStarted && !endScreen && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 50 }}>
+          <button onClick={() => { setDialogueIndex(0); startGame(); }}
+            onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"}
+            onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
+            style={{ ...btnStyle, position: "absolute", top: "3%", right: "3%" }}>
+            Skip →
+          </button>
+          <button onClick={() => navigate("/level-selection")}
+            onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"}
+            onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
+            style={{ ...btnStyle, position: "absolute", top: "3%", left: "3%" }}>
+            ← Level Menu
+          </button>
+          <div id="rr-hard-row" ref={hardRowRef} onClick={handleHardRowClick}
+            style={{ position: "absolute", top: "3%", left: "50%", transform: "translateX(-50%)" }}>
+            <div id="rr-hard-switch"><div id="rr-hard-knob" /></div>
+            <span id="rr-hard-text">Hard Mode</span>
+          </div>
+          <img src={wavingBearImg} alt="waving bear" style={{
+            position: "absolute", bottom: 0, left: "2%",
+            height: "55vh", maxHeight: "420px", objectFit: "contain", zIndex: 1,
+            filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.2))", pointerEvents: "none",
+          }} />
+          <div onClick={handleDialogueNext} style={{
+            position: "absolute", bottom: "4%", left: "50%",
+            transform: "translateX(-50%)", width: "72vw", maxWidth: "860px",
+            cursor: "pointer", zIndex: 2,
+          }}>
+            <div style={{
+              display: "inline-block", background: "#f5eedc",
+              border: "3px solid #c8b89a", borderBottom: "none",
+              borderRadius: "14px 14px 0 0", padding: "6px 22px",
+              fontFamily: "'Fredoka One', cursive", fontSize: "18px",
+              color: "#5a4a35", marginLeft: "24px",
+              boxShadow: "0 -2px 8px rgba(0,0,0,0.06)",
+            }}>
+              {currentLine.speaker}
+            </div>
+            <div style={{
+              background: "#fdf6e3", border: "3px solid #c8b89a",
+              borderRadius: "0 18px 18px 18px", padding: "24px 32px",
+              boxShadow: "0 8px 30px rgba(0,0,0,0.18)", textAlign: "left",
+            }}>
+              <p style={{
+                fontFamily: "'Fredoka One', cursive",
+                fontSize: "clamp(16px, 1.8vw, 22px)", color: "#3d2e1e",
+                margin: 0, lineHeight: 1.6, minHeight: "60px",
+                textAlign: "left", whiteSpace: "normal", wordBreak: "normal",
+              }}>
+                {currentLine.text}
+              </p>
+              <div style={{ display: "flex", alignItems: "center", marginTop: "16px", gap: "10px" }}>
+                <button onClick={handleDialogueBack} disabled={dialogueIndex === 0}
+                  onMouseEnter={e => { if (dialogueIndex > 0) e.currentTarget.style.transform = "scale(1.1)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
+                  style={{
+                    background: "transparent", border: "none", padding: "4px 12px",
+                    fontFamily: "'Fredoka One', cursive", fontSize: "16px",
+                    color: dialogueIndex === 0 ? "#c8b89a" : "#a08c72",
+                    cursor: dialogueIndex === 0 ? "not-allowed" : "pointer",
+                    transition: "transform 0.1s ease", flexShrink: 0,
+                  }}>◀</button>
+                {INTRO_DIALOGUE.map((_, i) => (
+                  <div key={i} style={{
+                    width: i === dialogueIndex ? "20px" : "8px", height: "8px",
+                    borderRadius: "999px",
+                    background: i === dialogueIndex ? "#c8b89a" : "#e0d5c0",
+                    transition: "width 0.2s ease", flexShrink: 0,
+                  }} />
+                ))}
+                <span style={{
+                  marginLeft: "auto", fontFamily: "'Fredoka One', cursive",
+                  fontSize: "14px", color: "#a08c72", flexShrink: 0,
+                }}>
+                  {isLastDialogue ? "Let's go! ▶" : "Click to continue ▶"}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
