@@ -1,13 +1,13 @@
-import { useNavigate } from "react-router-dom";
+//import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import homescreenImg from "../assets/homescreen.jpg";
+//import homescreenImg from "../assets/homescreen.jpg";
 
 import sushiSalmon from "../assets/sprites/sushi_salmon.png";
 import sushiShrimp from "../assets/sprites/sushi_shrimp.png";
 import sushiTamago from "../assets/sprites/sushi_tamago.png";
 
-export default function Settings() {
-  const navigate = useNavigate();
+export default function Settings({ onClose }) {
+  //const navigate = useNavigate();
   const savedSettings = JSON.parse(localStorage.getItem("gameSettings"));
 
   const [masterVolume, setMasterVolume] = useState(savedSettings?.masterVolume ?? 50);
@@ -59,7 +59,7 @@ export default function Settings() {
 
   return (
     <div>
-      <img
+      {/* <img
         src={homescreenImg}
         alt=""
         style={{
@@ -70,7 +70,7 @@ export default function Settings() {
           height: "100%",
           objectFit: "cover",
         }}
-      />
+      /> */}
 
       <div
         style={{
@@ -141,7 +141,7 @@ export default function Settings() {
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "40px" }}>
           <button style={buttonStyle} onClick={handleSave}>Save</button>
           <button style={buttonStyle} onClick={handleReset}>Reset</button>
-          <button style={buttonStyle} onClick={() => navigate("/")}>Exit</button>
+          <button style={buttonStyle} onClick={onClose}>Exit</button>
         </div>
       </div>
 
