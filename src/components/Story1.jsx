@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import storyImg from "../assets/storymode1.png";
+// import { supabase } from "../supabase";
 
 const DIALOGUE = [
   { speaker: "Narrator", text: "Long ago, the bears lived in harmony, with clean rivers, tall pines, and fresh mountain air." },
@@ -14,27 +15,64 @@ export default function Story1() {
   const navigate = useNavigate();
   const [index, setIndex] = useState(0);
 
-  const handleNext = () => {
+  const markStoryAsSeen = async () => {
+    localStorage.setItem("guestHasSeenStory1", "true");
+
+    /*
+    const { data: sessionData } = await supabase.auth.getSession();
+    const currentSession = sessionData?.session ?? null;
+
+    if (currentSession?.user) {
+      await supabase
+        .from("profiles")
+        .upsert({
+          id: currentSession.user.id,
+          has_seen_story1: true,
+        });
+    }
+    */
+  };
+
+  const goToLevelSelection = async () => {
+    await markStoryAsSeen();
+    navigate("/level-selection");
+  };
+
+  const handleNext = async () => {
     if (index < DIALOGUE.length - 1) {
       setIndex(index + 1);
     } else {
-      navigate("/level-selection");
+      await goToLevelSelection();
     }
   };
 
   const handleBack = (e) => {
     e.stopPropagation();
-    if (index > 0) setIndex(index - 1);
+    if (index > 0) {
+      setIndex(index - 1);
+    }
+  };
+
+  const handleSkip = async (e) => {
+    e.stopPropagation();
+    await goToLevelSelection();
   };
 
   const current = DIALOGUE[index];
   const isLast = index === DIALOGUE.length - 1;
 
   return (
-    <div>
-      {/* Background */}
+    <div
+      onClick={handleNext}
+      style={{
+        position: "fixed",
+        inset: 0,
+        cursor: "pointer",
+      }}
+    >
       <img
         src={storyImg}
+        alt="Story"
         style={{
           position: "fixed",
           top: 0,
@@ -43,12 +81,13 @@ export default function Story1() {
           height: "100%",
           objectFit: "cover",
           objectPosition: "center",
+          userSelect: "none",
+          pointerEvents: "none",
         }}
       />
 
-      {/* Skip button */}
       <button
-        onClick={() => navigate("/level-selection")}
+        onClick={handleSkip}
         onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
         onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
         style={{
@@ -70,9 +109,7 @@ export default function Story1() {
         Skip →
       </button>
 
-      {/* Dialogue box area */}
       <div
-        onClick={handleNext}
         style={{
           position: "fixed",
           bottom: "4%",
@@ -81,10 +118,8 @@ export default function Story1() {
           width: "80vw",
           maxWidth: "900px",
           zIndex: 2,
-          cursor: "pointer",
         }}
       >
-        {/* Speaker tag */}
         <div
           style={{
             display: "inline-block",
@@ -103,7 +138,6 @@ export default function Story1() {
           {current.speaker}
         </div>
 
-        {/* Text box */}
         <div
           style={{
             background: "#fdf6e3",
@@ -126,31 +160,31 @@ export default function Story1() {
             {current.text}
           </p>
 
-          {/* Bottom row: back button + dots + continue */}
           <div style={{ display: "flex", alignItems: "center", marginTop: "16px", gap: "10px" }}>
-
-            {/* Back arrow button */}
             <button
               onClick={handleBack}
               disabled={index === 0}
-              onMouseEnter={(e) => { if (index > 0) e.currentTarget.style.transform = "scale(1.1)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+              onMouseEnter={(e) => {
+                if (index > 0) e.currentTarget.style.transform = "scale(1.1)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "scale(1)";
+              }}
               style={{
-  background: "transparent",
-  border: "none",
-  padding: "4px 12px",
-  fontFamily: "'Fredoka One', cursive",
-  fontSize: "16px",
-  color: index === 0 ? "#c8b89a" : "#a08c72",
-  cursor: index === 0 ? "not-allowed" : "pointer",
-  transition: "transform 0.1s ease",
-  flexShrink: 0,
-}}
+                background: "transparent",
+                border: "none",
+                padding: "4px 12px",
+                fontFamily: "'Fredoka One', cursive",
+                fontSize: "16px",
+                color: index === 0 ? "#c8b89a" : "#a08c72",
+                cursor: index === 0 ? "not-allowed" : "pointer",
+                transition: "transform 0.1s ease",
+                flexShrink: 0,
+              }}
             >
               ◀
             </button>
 
-            {/* Progress dots */}
             {DIALOGUE.map((_, i) => (
               <div
                 key={i}
@@ -165,7 +199,6 @@ export default function Story1() {
               />
             ))}
 
-            {/* Continue text */}
             <span
               style={{
                 marginLeft: "auto",
@@ -175,7 +208,7 @@ export default function Story1() {
                 flexShrink: 0,
               }}
             >
-              {isLast ? "Let's go! ▶" : "Click to continue ▶"}
+              {isLast ? "Let's go! ▶" : "Click anywhere to continue ▶"}
             </span>
           </div>
         </div>

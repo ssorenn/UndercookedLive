@@ -1,13 +1,12 @@
-//import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-//import homescreenImg from "../assets/homescreen.jpg";
 
 import sushiSalmon from "../assets/sprites/sushi_salmon.png";
 import sushiShrimp from "../assets/sprites/sushi_shrimp.png";
 import sushiTamago from "../assets/sprites/sushi_tamago.png";
 
-export default function Settings({ onClose }) {
-  //const navigate = useNavigate();
+export default function Settings({ onClose, background }) {
+  const navigate = useNavigate();
   const savedSettings = JSON.parse(localStorage.getItem("gameSettings"));
 
   const [masterVolume, setMasterVolume] = useState(savedSettings?.masterVolume ?? 50);
@@ -16,62 +15,53 @@ export default function Settings({ onClose }) {
   const [hardMode, setHardMode] = useState(savedSettings?.hardMode ?? false);
   const [hints, setHints] = useState(savedSettings?.hints ?? true);
 
+  // Works as a modal (onClose prop) or a standalone page (navigates to /)
+  const handleExit = () => {
+    if (onClose) onClose();
+    else navigate("/");
+  };
+
   const handleSave = () => {
-    const settings = {
-      masterVolume,
-      musicVolume,
-      soundEffects,
-      hardMode,
-      hints,
-    };
+    const settings = { masterVolume, musicVolume, soundEffects, hardMode, hints };
     localStorage.setItem("gameSettings", JSON.stringify(settings));
     alert("Settings Saved!");
   };
 
   const handleReset = () => {
-    const defaults = {
-      masterVolume: 50,
-      musicVolume: 50,
-      soundEffects: 50,
-      hardMode: false,
-      hints: true,
-    };
-
+    const defaults = { masterVolume: 50, musicVolume: 50, soundEffects: 50, hardMode: false, hints: true };
     setMasterVolume(defaults.masterVolume);
     setMusicVolume(defaults.musicVolume);
     setSoundEffects(defaults.soundEffects);
     setHardMode(defaults.hardMode);
     setHints(defaults.hints);
-
     localStorage.setItem("gameSettings", JSON.stringify(defaults));
   };
 
   const sliderRows = [
     { label: "Master Volume", value: masterVolume, setter: setMasterVolume, img: sushiSalmon },
-    { label: "Music Volume", value: musicVolume, setter: setMusicVolume, img: sushiShrimp },
+    { label: "Music Volume",  value: musicVolume,  setter: setMusicVolume,  img: sushiShrimp },
     { label: "Sound Effects", value: soundEffects, setter: setSoundEffects, img: sushiTamago },
   ];
 
   const toggleRows = [
     { label: "Hard Mode", value: hardMode, setter: setHardMode },
-    { label: "Hints", value: hints, setter: setHints },
+    { label: "Hints",     value: hints,    setter: setHints    },
   ];
 
   return (
     <div>
-      {/* <img
-        src={homescreenImg}
-        alt=""
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-        }}
-      /> */}
-
+      {/* Background — only shown when used as a standalone page */}
+      {background && (
+        <img
+          src={background}
+          alt=""
+          style={{ position: "fixed", inset: 0, width: "100%", height: "100%", objectFit: "cover", zIndex: 0 }}
+        />
+      )}
+      {/* Scrim so panel stays readable regardless */}
+      {background && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.15)", zIndex: 0 }} />
+      )}
       <div
         style={{
           position: "fixed",
@@ -96,7 +86,6 @@ export default function Settings({ onClose }) {
         {sliderRows.map((row) => (
           <div key={row.label} style={{ marginBottom: "40px" }}>
             <div style={{ fontSize: "26px", marginBottom: "12px" }}>{row.label}</div>
-
             <div className="sliderWrap" style={{ ["--val"]: row.value / 100 }}>
               <input
                 type="range"
@@ -141,13 +130,12 @@ export default function Settings({ onClose }) {
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "40px" }}>
           <button style={buttonStyle} onClick={handleSave}>Save</button>
           <button style={buttonStyle} onClick={handleReset}>Reset</button>
-          <button style={buttonStyle} onClick={onClose}>Exit</button>
+          <button style={buttonStyle} onClick={handleExit}>Exit</button>
         </div>
       </div>
 
-      <style>
-        {`
-        .sliderWrap{
+      <style>{`
+        .sliderWrap {
           position: relative;
           width: 100%;
           height: 64px;
@@ -158,8 +146,7 @@ export default function Settings({ onClose }) {
           padding-right: var(--pad);
           box-sizing: border-box;
         }
-
-        .sushiRange{
+        .sushiRange {
           position: absolute;
           left: var(--pad);
           width: calc(100% - (var(--pad) * 2));
@@ -170,13 +157,11 @@ export default function Settings({ onClose }) {
           border-radius: 10px;
           outline: none;
         }
-
-        .sushiRange::-webkit-slider-runnable-track{
+        .sushiRange::-webkit-slider-runnable-track {
           height: var(--trackH);
           border-radius: 10px;
         }
-
-        .sushiRange::-webkit-slider-thumb{
+        .sushiRange::-webkit-slider-thumb {
           appearance: none;
           width: var(--thumbSize);
           height: var(--thumbSize);
@@ -185,8 +170,7 @@ export default function Settings({ onClose }) {
           margin-top: calc((var(--trackH) - var(--thumbSize)) / 2);
           cursor: pointer;
         }
-
-        .sushiKnob{
+        .sushiKnob {
           position: absolute;
           top: 50%;
           left: calc(var(--pad) + (100% - (2 * var(--pad))) * var(--val));
@@ -198,20 +182,13 @@ export default function Settings({ onClose }) {
           filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
           user-select: none;
         }
-
         .switch {
           position: relative;
           display: inline-block;
           width: 60px;
           height: 34px;
         }
-
-        .switch input {
-          opacity: 0;
-          width: 0;
-          height: 0;
-        }
-
+        .switch input { opacity: 0; width: 0; height: 0; }
         .slider {
           position: absolute;
           cursor: pointer;
@@ -219,7 +196,6 @@ export default function Settings({ onClose }) {
           background-color: #ccc;
           border-radius: 34px;
         }
-
         .slider:before {
           content: "";
           position: absolute;
@@ -231,16 +207,9 @@ export default function Settings({ onClose }) {
           border-radius: 50%;
           transition: .3s;
         }
-
-        input:checked + .slider {
-          background-color: #4CAF50;
-        }
-
-        input:checked + .slider:before {
-          transform: translateX(26px);
-        }
-        `}
-      </style>
+        input:checked + .slider { background-color: #4CAF50; }
+        input:checked + .slider:before { transform: translateX(26px); }
+      `}</style>
     </div>
   );
 }
