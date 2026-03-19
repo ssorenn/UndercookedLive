@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import homescreenImg from "../assets/trees_background1.png";
 
 const LEVELS = [
-  { id: 1, name: "Let's Fish!", stars: 3, unlocked: true },
+  { id: 1, name: "Let's clean and collect fish!", stars: 3, unlocked: true },
   { id: 2, name: "Prepare Your Fish", stars: 2, unlocked: true },
   { id: 3, name: "Stack the Sushi", stars: 0, unlocked: false },
   { id: 4, name: "Trash Sorting", stars: 0, unlocked: false },

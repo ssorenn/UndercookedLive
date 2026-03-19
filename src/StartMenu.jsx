@@ -6,6 +6,8 @@ import playBtnImg from "./assets/play_button.png";
 import settingsBtnImg from "./assets/settings_button.png";
 import infoBtnImg from "./assets/info_button.png";
 
+import Settings from "./components/Settings";
+
 import { supabase } from "./supabase";
 import {
   isGuestMode,
@@ -20,6 +22,7 @@ export default function StartMenu() {
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState(null);
   const [playBusy, setPlayBusy] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     let stillMounted = true;
@@ -77,31 +80,6 @@ export default function StartMenu() {
     try {
       if (session?.user) {
         const currentUserId = session.user.id;
-
-        /*
-        // Uncomment when Supabase is working again
-        const { data: storyProgressRow, error: storyProgressError } = await supabase
-          .from("profiles")
-          .select("has_seen_story1")
-          .eq("id", currentUserId)
-          .single();
-
-        if (storyProgressError) {
-          console.error("Could not read story progress:", storyProgressError);
-          navigate("/story1");
-          return;
-        }
-
-        const hasSeenStory1 = !!storyProgressRow?.has_seen_story1;
-
-        if (hasSeenStory1) {
-          navigate("/level-selection");
-        } else {
-          navigate("/story1");
-        }
-        return;
-        */
-
         console.log("Supabase check is temporarily disabled. User id:", currentUserId);
         navigate("/story1");
         return;
@@ -137,112 +115,79 @@ export default function StartMenu() {
 
   return (
     <div>
+      {/* Background */}
       <img
         src={homescreenImg}
         alt="Home"
         style={{
           position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          objectPosition: "center",
+          top: 0, left: 0,
+          width: "100%", height: "100%",
+          objectFit: "cover", objectPosition: "center",
         }}
       />
 
+      {/* Play button */}
       <img
         src={playBtnImg}
         alt="Play"
         onClick={handlePlayClick}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = "translateX(-50%) scale(1.05)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "translateX(-50%) scale(1)";
-        }}
+        onMouseEnter={(e) => { e.currentTarget.style.transform = "translateX(-50%) scale(1.05)"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.transform = "translateX(-50%) scale(1)"; }}
         style={{
-          position: "fixed",
-          bottom: "10%",
-          left: "51%",
-          transform: "translateX(-50%)",
-          width: "20vw",
+          position: "fixed", bottom: "10%", left: "51%",
+          transform: "translateX(-50%)", width: "20vw",
           cursor: playBusy ? "wait" : "pointer",
-          zIndex: 1,
-          transition: "transform 0.15s ease",
+          zIndex: 1, transition: "transform 0.15s ease",
           opacity: playBusy ? 0.9 : 1,
         }}
       />
 
+      {/* Settings button — opens modal */}
       <img
         src={settingsBtnImg}
         alt="Settings"
-        onClick={() => navigate("/settings")}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = "scale(1.05)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "scale(1)";
-        }}
+        onClick={() => setShowSettings(true)}
+        onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.05)"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
         style={{
-          position: "fixed",
-          bottom: "10%",
-          left: "63%",
-          width: "15vw",
-          cursor: "pointer",
-          zIndex: 1,
-          transition: "transform 0.15s ease",
+          position: "fixed", bottom: "10%", left: "63%",
+          width: "15vw", cursor: "pointer",
+          zIndex: 1, transition: "transform 0.15s ease",
         }}
       />
 
+      {/* Info button */}
       <img
         src={infoBtnImg}
         alt="Info"
         onClick={() => navigate("/info")}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = "scale(1.05)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "scale(1)";
-        }}
+        onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.05)"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
         style={{
-          position: "fixed",
-          bottom: "10%",
-          left: "23%",
-          width: "15vw",
-          cursor: "pointer",
-          zIndex: 1,
-          transition: "transform 0.15s ease",
+          position: "fixed", bottom: "10%", left: "23%",
+          width: "15vw", cursor: "pointer",
+          zIndex: 1, transition: "transform 0.15s ease",
         }}
       />
 
+      {/* Clear cache */}
       <button
         onClick={handleClearCache}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = "scale(1.05)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "scale(1)";
-        }}
+        onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.05)"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
         style={{
-          position: "fixed",
-          bottom: "2%",
-          left: "2%",
-          zIndex: 3,
-          padding: "8px 14px",
-          fontSize: "12px",
-          borderRadius: "12px",
-          border: "none",
-          backgroundColor: "rgba(232, 225, 207, 0.92)",
-          cursor: "pointer",
-          boxShadow: "0 6px 12px rgba(0,0,0,0.15)",
-          fontFamily: "'Fredoka One', cursive",
-          transition: "transform 0.1s ease",
+          position: "fixed", bottom: "2%", left: "2%", zIndex: 3,
+          padding: "8px 14px", fontSize: "12px", borderRadius: "12px",
+          border: "none", backgroundColor: "rgba(232, 225, 207, 0.92)",
+          cursor: "pointer", boxShadow: "0 6px 12px rgba(0,0,0,0.15)",
+          fontFamily: "'Fredoka One', cursive", transition: "transform 0.1s ease",
         }}
       >
         Clear Cache
       </button>
 
+      {/* User info */}
       <div style={{ position: "fixed", top: 16, right: 16, zIndex: 2 }}>
         {session && (
           <>
@@ -260,17 +205,13 @@ export default function StartMenu() {
             </button>
           </>
         )}
-
         {!session && guestMode && guestProfile && (
           <>
             <p style={{ color: "black", margin: "0 0 8px 0" }}>
               Playing as Guest: <strong>{guestProfile.display_name}</strong>
             </p>
             <button
-              onClick={() => {
-                endGuestMode();
-                navigate("/auth");
-              }}
+              onClick={() => { endGuestMode(); navigate("/auth"); }}
               style={{ cursor: "pointer" }}
             >
               Exit Guest Mode
@@ -278,6 +219,13 @@ export default function StartMenu() {
           </>
         )}
       </div>
+
+      {/* Settings modal — sits on top of the home background */}
+      {showSettings && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 10 }}>
+          <Settings onClose={() => setShowSettings(false)} />
+        </div>
+      )}
     </div>
   );
 }
