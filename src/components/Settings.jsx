@@ -5,7 +5,7 @@ import sushiSalmon from "../assets/sprites/sushi_salmon.png";
 import sushiShrimp from "../assets/sprites/sushi_shrimp.png";
 import sushiTamago from "../assets/sprites/sushi_tamago.png";
 
-export default function Settings({ onClose, background }) {
+export default function Settings({ onClose, background, extraButtons }) {
   const navigate = useNavigate();
   const savedSettings = JSON.parse(localStorage.getItem("gameSettings"));
 
@@ -127,10 +127,11 @@ export default function Settings({ onClose, background }) {
           </div>
         ))}
 
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "40px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "40px", flexWrap: "wrap", gap: "12px" }}>
           <button style={buttonStyle} onClick={handleSave}>Save</button>
           <button style={buttonStyle} onClick={handleReset}>Reset</button>
           <button style={buttonStyle} onClick={handleExit}>Exit</button>
+          {extraButtons}
         </div>
       </div>
 

@@ -85,8 +85,6 @@ const STYLES = `
   .rr-item img { width:100%; height:100%; object-fit:contain; pointer-events:none; }
   @keyframes rrFloat { from { left:105%; } to { left:-80px; } }
   @keyframes rrBob   { 0%,100% { margin-top:0; } 50% { margin-top:-9px; } }
-
-  /* Freeze items when paused */
   .rr-item.paused { animation-play-state: paused !important; }
 
   #rr-catcher-zone {
@@ -112,7 +110,6 @@ const STYLES = `
     75% { transform:translateX(10px) rotate(10deg); }
   }
 
-  /* HUD */
   #rr-hud {
     position:fixed; top:14px; left:0; right:0; z-index:20;
     display:flex; align-items:center; justify-content:center;
@@ -269,9 +266,62 @@ const STYLES = `
   }
 `;
 
+// ── Quit confirmation modal ───────────────────────────────────────────────────
+function QuitConfirmModal({ onConfirm, onCancel }) {
+  const btnBase = {
+    padding: "12px 32px", fontSize: "18px", borderRadius: "16px",
+    border: "none", cursor: "pointer", fontFamily: "'Fredoka One', cursive",
+    transition: "transform 0.1s ease", boxShadow: "0 6px 12px rgba(0,0,0,0.12)",
+  };
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 80,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)",
+    }}>
+      <div style={{
+        background: "rgba(255,255,255,0.95)", borderRadius: "28px",
+        padding: "44px 48px", maxWidth: "420px", width: "90vw",
+        textAlign: "center", boxShadow: "0 24px 48px rgba(0,0,0,0.2)",
+        fontFamily: "'Fredoka One', cursive",
+      }}>
+        <div style={{ fontSize: "3rem", marginBottom: "12px" }}>🏠</div>
+        <h2 style={{ fontSize: "28px", color: "#3d2e1e", margin: "0 0 10px" }}>
+          Go to Main Menu?
+        </h2>
+        <p style={{
+          fontFamily: "'Nunito', sans-serif", fontSize: "16px",
+          color: "#7a6a58", lineHeight: 1.6, margin: "0 0 32px",
+        }}>
+          Your current progress won't be saved.<br />Are you sure you want to leave?
+        </p>
+        <div style={{ display: "flex", gap: "14px", justifyContent: "center" }}>
+          <button
+            onClick={onCancel}
+            onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"}
+            onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
+            style={{ ...btnBase, backgroundColor: "#e8e1cf", color: "#3d2e1e" }}
+          >
+            Keep Playing
+          </button>
+          <button
+            onClick={onConfirm}
+            onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"}
+            onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
+            style={{ ...btnBase, backgroundColor: "#e74c3c", color: "white" }}
+          >
+            Leave
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function RiverGame() {
   const navigate = useNavigate();
   const [showSettings, setShowSettings] = useState(false);
+  const [showQuitConfirm, setShowQuitConfirm] = useState(false);
   const [dialogueIndex, setDialogueIndex] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
   const [endScreen, setEndScreen] = useState(null);
@@ -304,7 +354,6 @@ export default function RiverGame() {
   const hardRowRef      = useRef(null);
   const catchLineRef    = useRef(null);
 
-  // Stable callback refs so resumeGame can call latest versions without stale closures
   const spawnItemRef   = useRef(null);
   const rampUpRef      = useRef(null);
   const updateTimerRef = useRef(null);
@@ -417,7 +466,7 @@ export default function RiverGame() {
   const updateTrashCombo = useCallback(() => {
     const { trashCombo } = stateRef.current;
     if (comboDisplayRef.current)
-      comboDisplayRef.current.textContent = trashCombo >= 3 ? ` x${trashCombo}` : trashCombo > 0 ? `✨ x${trashCombo}` : "—";
+      comboDisplayRef.current.textContent = trashCombo >= 3 ? `🔥 x${trashCombo}` : trashCombo > 0 ? `✨ x${trashCombo}` : "—";
   }, []);
 
   const updateFishCount = useCallback(() => {
@@ -597,13 +646,12 @@ export default function RiverGame() {
     s.spawnInterval = setInterval(spawnItem, s.spawnDelay);
   }, [spawnItem]);
 
-  // Keep stable refs current so resumeGame never uses stale closures
   useEffect(() => { spawnItemRef.current   = spawnItem;   }, [spawnItem]);
   useEffect(() => { rampUpRef.current      = rampUp;      }, [rampUp]);
   useEffect(() => { updateTimerRef.current = updateTimer; }, [updateTimer]);
   useEffect(() => { endGameRef.current     = endGame;     }, [endGame]);
 
-  // ── Pause ─────────────────────────────────────────────────────────────────
+  // ── Pause / Resume ────────────────────────────────────────────────────────
   const pauseGame = useCallback(() => {
     const s = stateRef.current;
     if (!s.gameRunning) return;
@@ -614,7 +662,6 @@ export default function RiverGame() {
     document.querySelectorAll(".rr-item").forEach(el => el.classList.add("paused"));
   }, []);
 
-  // ── Resume ────────────────────────────────────────────────────────────────
   const resumeGame = useCallback(() => {
     const s = stateRef.current;
     if (s.gameRunning) return;
@@ -629,7 +676,6 @@ export default function RiverGame() {
     }, 1000);
   }, []);
 
-  // ── Open/close settings with pause/resume ─────────────────────────────────
   const openSettings = useCallback(() => {
     pauseGame();
     setShowSettings(true);
@@ -637,6 +683,7 @@ export default function RiverGame() {
 
   const closeSettings = useCallback(() => {
     setShowSettings(false);
+    setShowQuitConfirm(false);
     resumeGame();
   }, [resumeGame]);
 
@@ -721,7 +768,7 @@ export default function RiverGame() {
   }, []);
 
   const INTRO_DIALOGUE = [
-    { speaker: "Narrator", text: "Oh no! The river is full of trash — clean it up while catching salmon for our hungry customers!" },
+    { speaker: "Narrator", text: "Oh no! The river is full of trash,clean it up while catching salmon for our hungry customers!" },
     { speaker: "Narrator", text: "Move your mouse up and down to position your catcher along the left edge of the river." },
     { speaker: "Bear",     text: "Switch between the Trash Can and Fish Net using SPACE or the button above. Only catch what matches!" },
     { speaker: "Bear",     text: "Build a trash streak for bonus points, and catch as many salmon as you can. Good luck!" },
@@ -739,7 +786,6 @@ export default function RiverGame() {
     if (dialogueIndex > 0) setDialogueIndex(i => i - 1);
   };
 
-  // ── Shared button style ───────────────────────────────────────────────────
   const btnStyle = {
     padding: "14px 38px", fontSize: "20px", borderRadius: "18px",
     border: "none", backgroundColor: "#e8e1cf", cursor: "pointer",
@@ -777,7 +823,7 @@ export default function RiverGame() {
           <span ref={modeLabelRef}>Trash Can</span>
           <span style={{ opacity: 0.45 }}>⇄</span>
         </button>
-        <span id="rr-hard-badge" ref={hardBadgeRef}>🔥 HARD</span>
+        <span id="rr-hard-badge" ref={hardBadgeRef}> HARD</span>
         <div className="rr-hud-block">
           <span className="rr-hud-label">Saved</span>
           <span id="rr-fish-val" ref={fishValRef}>0</span>
@@ -792,18 +838,43 @@ export default function RiverGame() {
         </div>
       </div>
 
-      {/* Settings gear — only during gameplay, pauses on click */}
+      {/* Settings gear */}
       {gameStarted && (
         <button id="rr-settings-btn" title="Settings" onClick={openSettings}>
           <img src={settingsCogImg} alt="settings" style={{ width: "26px", height: "26px", objectFit: "contain" }} />
         </button>
       )}
 
-      {/* Settings modal */}
+      {/* Settings modal — includes a "Main Menu" button that triggers quit confirm */}
       {showSettings && (
         <div style={{ position: "fixed", inset: 0, zIndex: 60 }}>
-          <Settings onClose={closeSettings} />
+          <Settings
+            onClose={closeSettings}
+            extraButtons={
+              <button
+                onClick={() => setShowQuitConfirm(true)}
+                onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"}
+                onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
+                style={{
+                  padding: "14px 38px", fontSize: "20px", borderRadius: "18px",
+                  border: "none", backgroundColor: "#c0392b", color: "white",
+                  cursor: "pointer", boxShadow: "0 8px 15px rgba(0,0,0,0.15)",
+                  fontFamily: "'Fredoka One', cursive", transition: "transform 0.1s ease",
+                }}
+              >
+                Main Menu
+              </button>
+            }
+          />
         </div>
+      )}
+
+      {/* Quit confirmation — sits above settings */}
+      {showQuitConfirm && (
+        <QuitConfirmModal
+          onConfirm={() => navigate("/")}
+          onCancel={() => setShowQuitConfirm(false)}
+        />
       )}
 
       {gameStarted && (
@@ -826,7 +897,7 @@ export default function RiverGame() {
               {endScreen.timeUp ? "Time's Up!" : "Game Over!"}
             </h1>
             {endScreen.hardMode && (
-              <div style={{ color: "#e74c3c", fontSize: "18px", marginBottom: "12px" }}>🔥 Hard Mode</div>
+              <div style={{ color: "#e74c3c", fontSize: "18px", marginBottom: "12px" }}> Hard Mode</div>
             )}
             <div style={{ display: "flex", gap: "8px", justifyContent: "center", margin: "18px 0" }}>
               {[1, 2, 3].map(s => (
