@@ -141,8 +141,8 @@ export default function StartMenu() {
         style={{
           position: "fixed",
           bottom: "10%",
-          left: "22%",
-          width: "17vw",
+          left: "23%",
+          width: "15vw",
           cursor: "pointer",
           zIndex: 1,
           transition: "transform 0.15s ease",
