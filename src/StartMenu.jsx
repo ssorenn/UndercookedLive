@@ -19,51 +19,121 @@ export default function StartMenu() {
 
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState(null);
+  const [playBusy, setPlayBusy] = useState(false);
 
   useEffect(() => {
-    let alive = true;
+    let stillMounted = true;
 
     (async () => {
       try {
         const { data } = await supabase.auth.getSession();
-        if (!alive) return;
+        if (!stillMounted) return;
 
         setSession(data?.session ?? null);
 
-        const hasSession = !!data?.session;
-        if (!hasSession && !isGuestMode()) {
+        const hasLoginSession = !!data?.session;
+        if (!hasLoginSession && !isGuestMode()) {
           startGuestMode();
         }
       } finally {
-        if (alive) setReady(true);
+        if (stillMounted) setReady(true);
       }
     })();
 
-    // keep UI in sync if user logs in/out 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession ?? null);
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (_event, nextSession) => {
+        setSession(nextSession ?? null);
 
-      // If user logs in, end guest mode
-      if (newSession) endGuestMode();
-      // If user logs out, re-enable guest mode default
-      if (!newSession && !isGuestMode()) startGuestMode();
-    });
+        if (nextSession) {
+          endGuestMode();
+        }
+
+        if (!nextSession && !isGuestMode()) {
+          startGuestMode();
+        }
+      }
+    );
 
     return () => {
-      alive = false;
-      sub?.subscription?.unsubscribe?.();
+      stillMounted = false;
+      authListener?.subscription?.unsubscribe?.();
     };
   }, []);
 
   if (!ready) return null;
 
   const guestMode = isGuestMode();
-  const guest = getGuestProfile();
+  const guestProfile = getGuestProfile();
 
   const userLabel =
     session?.user?.user_metadata?.display_name ||
     session?.user?.email ||
     "Player";
+
+  async function handlePlayClick() {
+    if (playBusy) return;
+    setPlayBusy(true);
+
+    try {
+      if (session?.user) {
+        const currentUserId = session.user.id;
+
+        /*
+        // Uncomment when Supabase is working again
+        const { data: storyProgressRow, error: storyProgressError } = await supabase
+          .from("profiles")
+          .select("has_seen_story1")
+          .eq("id", currentUserId)
+          .single();
+
+        if (storyProgressError) {
+          console.error("Could not read story progress:", storyProgressError);
+          navigate("/story1");
+          return;
+        }
+
+        const hasSeenStory1 = !!storyProgressRow?.has_seen_story1;
+
+        if (hasSeenStory1) {
+          navigate("/level-selection");
+        } else {
+          navigate("/story1");
+        }
+        return;
+        */
+
+        console.log("Supabase check is temporarily disabled. User id:", currentUserId);
+        navigate("/story1");
+        return;
+      }
+
+      if (!isGuestMode()) {
+        startGuestMode();
+      }
+
+      const guestHasSeenStory1 =
+        localStorage.getItem("guestHasSeenStory1") === "true";
+
+      if (guestHasSeenStory1) {
+        navigate("/level-selection");
+      } else {
+        navigate("/story1");
+      }
+    } finally {
+      setPlayBusy(false);
+    }
+  }
+
+  function handleClearCache() {
+    const confirmed = window.confirm("Clear all local test data and reset progress?");
+    if (!confirmed) return;
+
+    localStorage.clear();
+    endGuestMode();
+    startGuestMode();
+    navigate("/");
+    window.location.reload();
+  }
 
   return (
     <div>
@@ -81,45 +151,39 @@ export default function StartMenu() {
         }}
       />
 
-      {/* PLAY */}
       <img
         src={playBtnImg}
         alt="Play"
-        onClick={() => {
-          // If logged in,  play
-          if (session) {
-            navigate("/story1");
-            return;
-          }
-          // Otherwise ensure guest exists,  play
-          if (!isGuestMode()) startGuestMode();
-          navigate("/story1");
+        onClick={handlePlayClick}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "translateX(-50%) scale(1.05)";
         }}
-        onMouseEnter={(e) =>
-          (e.currentTarget.style.transform = "translateX(-50%) scale(1.05)")
-        }
-        onMouseLeave={(e) =>
-          (e.currentTarget.style.transform = "translateX(-50%) scale(1)")
-        }
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "translateX(-50%) scale(1)";
+        }}
         style={{
           position: "fixed",
           bottom: "10%",
           left: "51%",
           transform: "translateX(-50%)",
           width: "20vw",
-          cursor: "pointer",
+          cursor: playBusy ? "wait" : "pointer",
           zIndex: 1,
           transition: "transform 0.15s ease",
+          opacity: playBusy ? 0.9 : 1,
         }}
       />
 
-      {/* SETTINGS */}
       <img
         src={settingsBtnImg}
         alt="Settings"
         onClick={() => navigate("/settings")}
-        onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-        onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "scale(1.05)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "scale(1)";
+        }}
         style={{
           position: "fixed",
           bottom: "10%",
@@ -131,13 +195,16 @@ export default function StartMenu() {
         }}
       />
 
-      {/* INFO */}
       <img
         src={infoBtnImg}
         alt="Info"
         onClick={() => navigate("/info")}
-        onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-        onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "scale(1.05)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "scale(1)";
+        }}
         style={{
           position: "fixed",
           bottom: "10%",
@@ -149,9 +216,34 @@ export default function StartMenu() {
         }}
       />
 
-      {/* TOP-RIGHT STATUS */}
+      <button
+        onClick={handleClearCache}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "scale(1.05)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "scale(1)";
+        }}
+        style={{
+          position: "fixed",
+          bottom: "2%",
+          left: "2%",
+          zIndex: 3,
+          padding: "8px 14px",
+          fontSize: "12px",
+          borderRadius: "12px",
+          border: "none",
+          backgroundColor: "rgba(232, 225, 207, 0.92)",
+          cursor: "pointer",
+          boxShadow: "0 6px 12px rgba(0,0,0,0.15)",
+          fontFamily: "'Fredoka One', cursive",
+          transition: "transform 0.1s ease",
+        }}
+      >
+        Clear Cache
+      </button>
+
       <div style={{ position: "fixed", top: 16, right: 16, zIndex: 2 }}>
-        {/* If logged in, show user + logout */}
         {session && (
           <>
             <p style={{ color: "black", margin: "0 0 8px 0" }}>
@@ -160,8 +252,7 @@ export default function StartMenu() {
             <button
               onClick={async () => {
                 await supabase.auth.signOut();
-                // onAuthStateChange will kick in, start guest mode, etc.
-                navigate("/auth"); 
+                navigate("/auth");
               }}
               style={{ cursor: "pointer" }}
             >
@@ -170,11 +261,10 @@ export default function StartMenu() {
           </>
         )}
 
-        {/* Otherwise if guest mode, show guest + exit */}
-        {!session && guestMode && guest && (
+        {!session && guestMode && guestProfile && (
           <>
             <p style={{ color: "black", margin: "0 0 8px 0" }}>
-              Playing as Guest: <strong>{guest.display_name}</strong>
+              Playing as Guest: <strong>{guestProfile.display_name}</strong>
             </p>
             <button
               onClick={() => {
