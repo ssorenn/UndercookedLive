@@ -309,7 +309,7 @@ function showResults() {
         const img = s.querySelector("img");
         img.style.opacity = "0";
         setTimeout(() => {
-          img.src = "../../../assets/sprites/fish-prep/honey2.png";
+          img.src = "/src/assets/sprites/fish-prep/honey2.png";
           img.style.opacity = "1";
         }, 200);
         s.classList.add("earned", "pop");

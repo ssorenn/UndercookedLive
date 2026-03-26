@@ -154,7 +154,12 @@ export default function LevelSelection() {
   const totalChapters = Math.ceil(levels.length / levelsPerPage);
 
   const handleScroll = (e) => {
-    // Remove this function, we'll use native scrolling
+    const container = scrollContainerRef.current;
+    if (e.deltaY > 0) {
+      container.scrollBy({ top: 350 });
+    } else {
+      container.scrollBy({ top: -350 });
+    }
   };
 
   const buttonStyle = {
@@ -255,6 +260,7 @@ export default function LevelSelection() {
             gap: "30px",
             overflow: "hidden",
           }}
+          onWheel={handleScroll}
         >
           <div
             ref={scrollContainerRef}
@@ -266,6 +272,7 @@ export default function LevelSelection() {
               width: "100%",
               height: "100%",
               paddingBottom: "12px",
+              scrollbarWidth: "none",
             }}
           >
             {Array.from({ length: totalChapters }).map((_, chapterIdx) => (

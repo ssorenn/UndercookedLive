@@ -369,3 +369,7 @@ z-index:100;
 .fishTrayZone:active {
   cursor: grabbing;
 }
+
+img {
+  color: transparent;
+}
