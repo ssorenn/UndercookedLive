@@ -1,14 +1,23 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import storyImg from "../assets/storymode1.png";
-// import { supabase } from "../supabase";
+import storyImg from "../assets/story_pngs/story1.1.png";
+import storyImg2 from "../assets/story_pngs/story1.2.png";
+import storyImg3 from "../assets/story_pngs/story1.3.png";
 
 const DIALOGUE = [
   { speaker: "Narrator", text: "Long ago, the bears lived in harmony, with clean rivers, tall pines, and fresh mountain air." },
   { speaker: "Narrator", text: "The careless bears threw their trash into the rivers, polluting the river and harming their environment." },
-  { speaker: "Narrator", text: "So slowly, trash began to pile up. Where there were once rocks and pebbles, now lay glass shards and crushed cans. Plastic bags floated down the river. The fish disappeared." },
+  { speaker: "Narrator", text: "So slowly, trash began to pile up. Where there were once rocks and pebbles, now lay glass shards and crushed cans. Trash filled the forests. Animals disappeared." },
   { speaker: "Bear Elder", text: "We took and took from this land. Now it is time we learn to give something back." },
   { speaker: "Narrator", text: "Can you help the bears restore their home before it's too late?" },
+];
+
+const DIALOGUE_BG = [
+  storyImg,
+  storyImg2,
+  storyImg3,
+  storyImg3,
+  storyImg3,
 ];
 
 export default function Story1() {
@@ -59,7 +68,12 @@ export default function Story1() {
   };
 
   const current = DIALOGUE[index];
+  const backgroundImg = DIALOGUE_BG[index] || storyImg3;
   const isLast = index === DIALOGUE.length - 1;
+
+  const textBoxPosition = index === 0
+    ? { bottom: "4%", top: "auto" }
+    : { top: "4%", bottom: "auto" };
 
   return (
     <div
@@ -71,8 +85,8 @@ export default function Story1() {
       }}
     >
       <img
-        src={storyImg}
-        alt="Story"
+        src={backgroundImg}
+        alt="Story background"
         style={{
           position: "fixed",
           top: 0,
@@ -112,12 +126,12 @@ export default function Story1() {
       <div
         style={{
           position: "fixed",
-          bottom: "4%",
           left: "50%",
           transform: "translateX(-50%)",
-          width: "80vw",
-          maxWidth: "900px",
+          width: "60vw",
+          maxWidth: "720px",
           zIndex: 2,
+          ...textBoxPosition,
         }}
       >
         <div
