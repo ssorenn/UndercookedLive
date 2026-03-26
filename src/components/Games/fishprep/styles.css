@@ -80,19 +80,21 @@ background: #e8e0d0;
   opacity: 1;
   transform: scale(1);
 }
-.hint{
-position:absolute;
-top:20px;
-left:50%;
-transform:translateX(-50%);
-
-background: rgba(184, 177, 91, 0.93);
-color:white;
-padding:12px 22px;
-border-radius:30px;
-border: 2px solid rgba(65, 41, 13, 0.6); 
-font-size:18px;
-z-index:100;
+.hint {
+  position: fixed; /* change from absolute */
+  bottom: 18px;
+  top: auto; /* remove the top:20px */
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  pointer-events: none;
+  padding: 5px 16px;
+  border-radius: 50px;
+  border: 1px solid rgba(255,255,255,0.15);
+  z-index: 100;
 }
 .scene{
   width: min(1000px, 95vw);
@@ -216,17 +218,14 @@ z-index:100;
 
 /* Results overlay */
 .results-overlay {
-  position: absolute;
+  position: fixed; /* change from absolute */
   inset: 0;
   z-index: 200;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0,0,0,0.55);
   backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  opacity: 1;
-  transition: opacity 700ms ease;
 }
 .results-overlay.hidden {
   opacity: 0;

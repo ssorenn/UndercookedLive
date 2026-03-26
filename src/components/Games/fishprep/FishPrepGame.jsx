@@ -16,8 +16,8 @@ import trashbinImg from "../../../assets/sprites/fish-prep/trashbin.png";
 import blankHoneyImg from "../../../assets/sprites/fish-prep/blankhoney.png";
 import filledHoneyImg from "../../../assets/sprites/fish-prep/honey2.png";
 import settingsCogImg from "../../../assets/settings_cog.png";
+import wavingBearImg from "../../../assets/sprites/river-game-sprites/wavingbear.png";
 
-// Base design size
 const BASE_W = 2048;
 const BASE_H = 1559;
 const BOARD_LEFT = 369;
@@ -47,25 +47,33 @@ const COMPOST_CY = 764;
 const RECYCLE_CY = 1007;
 const TRASH_CY = 1249;
 
+const INTRO_DIALOGUE = [
+  { speaker: "Bear", text: "Great work out there! We caught some amazing fish from the river today!" },
+  { speaker: "Bear", text: "Now it's time to prepare them. Let's head to the prep station and get these fillets ready for our customers!" },
+  { speaker: "Narrator", text: "Grab a fish from the ice tray on the left and drag it onto the cutting board." },
+  { speaker: "Narrator", text: "Then pick up the knife and drop it on the fish to slice it. Don't worry — try a couple times if it wriggles!" },
+  { speaker: "Narrator", text: "Once cut, sort the fish bones and tail into the compost bin. Zero waste, maximum sustainability! ♻️" },
+];
+
 export default function FishPrepGame() {
   const navigate = useNavigate();
   const [showSettings, setShowSettings] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false);
+  const [dialogueIndex, setDialogueIndex] = useState(0);
   const [sustainabilityScore, setSustainabilityScore] = useState(3);
   const [stage, setStageState] = useState("grab_fish");
   const [dragging, setDragging] = useState(null);
   const [openBin, setOpenBin] = useState(null);
-  const [glowBin, setGlowBin] = useState(null); // { bin, correct }
+  const [glowBin, setGlowBin] = useState(null);
   const [hint, setHint] = useState("Grab a fish from the tray!");
   const [hintDone, setHintDone] = useState(false);
   const [bonefishTossed, setBonefishTossed] = useState(false);
   const [fishtailTossed, setFishtailTossed] = useState(false);
   const [bonefishVisible, setBonefishVisible] = useState(true);
   const [fishtailVisible, setFishtailVisible] = useState(true);
-  const [fishDodged, setFishDodged] = useState(false);
   const [knifeCutting, setKnifeCutting] = useState(false);
   const [filletVisible, setFilletVisible] = useState(false);
-  const [deadfishTransform, setDeadfishTransform] = useState("translate(-50%, -50%)");
   const [honeyStars, setHoneyStars] = useState([false, false, false]);
 
   const sceneRef = useRef(null);
@@ -77,13 +85,11 @@ export default function FishPrepGame() {
   const sustainabilityRef = useRef(3);
   const draggingRef = useRef(null);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
-
   const knifePosRef = useRef(null);
   const bonePosRef = useRef(null);
   const tailPosRef = useRef(null);
   const fishPosRef = useRef(null);
 
-  // DOM refs
   const deadfishRef = useRef(null);
   const bonefishRef = useRef(null);
   const fishtailRef = useRef(null);
@@ -163,7 +169,6 @@ export default function FishPrepGame() {
     const currentStage = stageRef.current;
     const currentDragging = draggingRef.current;
 
-    // deadfish
     if (currentStage === "grab_fish" && currentDragging === "deadfish") {
       placeEl(deadfishRef.current, fishPosRef.current.x, fishPosRef.current.y);
       if (deadfishRef.current) {
@@ -180,25 +185,18 @@ export default function FishPrepGame() {
       }
     }
 
-    // fillet
     placeEl(filletRef.current, cx, cy);
 
-    // bonefish
     if (bonePosRef.current)
       placeEl(bonefishRef.current, bonePosRef.current.x, bonePosRef.current.y + sy(20));
-
-    // fishtail
     if (tailPosRef.current)
       placeEl(fishtailRef.current, tailPosRef.current.x, tailPosRef.current.y + sy(20));
-
-    // knife
     if (knifePosRef.current)
       placeEl(knifeRef.current, knifePosRef.current.x, knifePosRef.current.y);
 
     if (knifeRef.current)
       knifeRef.current.style.display = currentStage === "initial" ? "block" : "none";
 
-    // bins
     placeBin(compostBinRef.current, TRAY_CX, COMPOST_CY);
     placeBin(recycleBinRef.current, TRAY_CX, RECYCLE_CY);
     placeBin(trashBinRef.current, TRAY_CX, TRASH_CY);
@@ -206,7 +204,6 @@ export default function FishPrepGame() {
     placeZone(zoneRecycleRef.current, TRAY_CX, RECYCLE_CY, 110, 110);
     placeZone(zoneTrashRef.current, TRAY_CX, TRASH_CY, 110, 110);
 
-    // fish tray zone
     if (zoneFishtrayRef.current) {
       zoneFishtrayRef.current.style.left = `${sx(TRAY_ZONE_X)}px`;
       zoneFishtrayRef.current.style.top = `${sy(TRAY_ZONE_Y)}px`;
@@ -216,11 +213,9 @@ export default function FishPrepGame() {
         currentStage === "grab_fish" && currentDragging !== "deadfish" ? "block" : "none";
     }
 
-    // dots
     const order = ["grab_fish", "initial", "fish_cut", "fillet_done"];
     const idx = order.indexOf(currentStage);
-    const dotRefs = [dot0, dot1, dot2, dot3];
-    dotRefs.forEach((d, i) => {
+    [dot0, dot1, dot2, dot3].forEach((d, i) => {
       if (!d.current) return;
       d.current.classList.toggle("on", i <= idx);
       d.current.classList.toggle("current", order[i] === currentStage);
@@ -250,7 +245,12 @@ export default function FishPrepGame() {
     }
   }, [setStage, hint_]);
 
-  // Pointer events
+  const startGame = useCallback(() => {
+    setGameStarted(true);
+    initPositions();
+    placeSprites();
+  }, [initPositions, placeSprites]);
+
   useEffect(() => {
     initPositions();
     placeSprites();
@@ -283,7 +283,6 @@ export default function FishPrepGame() {
       const fishCY = sy(BOARD_CY);
       setOpenBin(null);
 
-      // deadfish drop
       if (draggingRef.current === "deadfish") {
         draggingRef.current = null;
         setDragging(null);
@@ -300,18 +299,15 @@ export default function FishPrepGame() {
         return;
       }
 
-      // knife drop
       if (draggingRef.current === "knife") {
         const hit = Math.abs(knifePosRef.current.x - fishCX) <= sx(HIT_PAD_X) &&
                     Math.abs(knifePosRef.current.y - fishCY) <= sy(HIT_PAD_Y);
 
         if (hit && !fishDodgedRef.current) {
           fishDodgedRef.current = true;
-          setFishDodged(true);
           draggingRef.current = null;
           setDragging(null);
 
-          // fish flop
           const fish = deadfishRef.current;
           if (fish) {
             fish.style.transition = "transform 100ms ease";
@@ -383,7 +379,6 @@ export default function FishPrepGame() {
         return;
       }
 
-      // bonefish drop
       if (draggingRef.current === "bonefish") {
         draggingRef.current = null;
         setDragging(null);
@@ -395,7 +390,6 @@ export default function FishPrepGame() {
           bonefishTossedRef.current = true;
           setBonefishTossed(true);
           setBonefishVisible(false);
-
           if (overCompost) {
             triggerGlow("compost", true);
             hint_("Bones in compost — nice!", true);
@@ -405,11 +399,9 @@ export default function FishPrepGame() {
             triggerGlow(overRecycle ? "recycle" : "trash", false);
             hint_("Fish bones should go in compost... cmon now");
           }
-
           setTimeout(() => {
             if (!fishtailTossedRef.current) hint_("Now sort the fish tail!");
           }, 1400);
-
           checkAllSorted();
           placeSprites();
           return;
@@ -421,7 +413,6 @@ export default function FishPrepGame() {
         return;
       }
 
-      // fishtail drop
       if (draggingRef.current === "fishtail") {
         draggingRef.current = null;
         setDragging(null);
@@ -433,7 +424,6 @@ export default function FishPrepGame() {
           fishtailTossedRef.current = true;
           setFishtailTossed(true);
           setFishtailVisible(false);
-
           if (overCompost) {
             triggerGlow("compost", true);
             hint_("Tail in compost, NICE!", true);
@@ -443,11 +433,9 @@ export default function FishPrepGame() {
             triggerGlow(overRecycle ? "recycle" : "trash", false);
             hint_("HEY! The fish tail should go in compost!");
           }
-
           setTimeout(() => {
             if (!bonefishTossedRef.current) hint_("Now sort the fish bones!");
           }, 1400);
-
           checkAllSorted();
           placeSprites();
           return;
@@ -464,17 +452,18 @@ export default function FishPrepGame() {
       placeSprites();
     };
 
+    const onResize = () => { initPositions(); placeSprites(); };
     window.addEventListener("pointermove", onPointerMove);
     window.addEventListener("pointerup", onPointerUp);
-    window.addEventListener("resize", () => { initPositions(); placeSprites(); });
+    window.addEventListener("resize", onResize);
 
     return () => {
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("resize", onResize);
     };
   }, [sx, sy, toLocal, pointInZone, placeSprites, initPositions, setStage, hint_, checkAllSorted, triggerGlow]);
 
-  // Show results - animate stars
   useEffect(() => {
     if (!showResults) return;
     const score = sustainabilityRef.current;
@@ -538,11 +527,6 @@ export default function FishPrepGame() {
     placeSprites();
   };
 
-  const handleContinue = () => {
-    saveLevelResult(2, sustainabilityRef.current);
-    navigate("/level-selection");
-  };
-
   const getBinClass = (binName) => {
     let cls = "bin";
     if (openBin === binName) cls += " open";
@@ -551,10 +535,38 @@ export default function FishPrepGame() {
     return cls;
   };
 
+  const isLastDialogue = dialogueIndex === INTRO_DIALOGUE.length - 1;
+  const currentLine = INTRO_DIALOGUE[dialogueIndex];
+
+  const handleDialogueNext = () => {
+    if (!isLastDialogue) {
+      setDialogueIndex((i) => i + 1);
+    } else {
+      setDialogueIndex(0);
+      startGame();
+    }
+  };
+
+  const handleDialogueBack = (e) => {
+    e.stopPropagation();
+    if (dialogueIndex > 0) setDialogueIndex((i) => i - 1);
+  };
+
   const messages = {
     3: "Perfect! You composted all the fish waste. Great sustainability practice!",
     2: "Almost! One piece went to the wrong bin. Fish waste belongs in compost!",
     1: "Both pieces went to the wrong bins. Remember: fish waste is compostable!",
+  };
+
+  const btnStyle = {
+    padding: "14px 38px",
+    fontSize: "20px",
+    borderRadius: "18px",
+    border: "none",
+    cursor: "pointer",
+    boxShadow: "0 8px 15px rgba(0,0,0,0.15)",
+    fontFamily: "'Fredoka One', cursive",
+    transition: "transform 0.1s ease",
   };
 
   return (
@@ -562,70 +574,49 @@ export default function FishPrepGame() {
       <div id="scene" className="scene" ref={sceneRef}
         style={{ backgroundImage: `url(${backgroundImg})` }}>
 
-        <div id="hint" className="hint" style={{
-          background: hintDone ? "rgba(74,124,89,0.85)" : "rgba(184,92,32,0.85)"
-        }}>{hint}</div>
+        <div ref={zoneFishtrayRef} className="fishTrayZone" onPointerDown={onFishtrayPointerDown} />
 
-        {/* Fish tray zone */}
-        <div ref={zoneFishtrayRef} className="fishTrayZone"
-          onPointerDown={onFishtrayPointerDown} />
-
-        {/* Sprites */}
-        <img ref={deadfishRef} id="deadfish" className="sprite" src={deadfishImg}
-          draggable="false" style={{ display: "none", transform: deadfishTransform }} />
-
+        <img ref={deadfishRef} id="deadfish" className="sprite" src={deadfishImg} draggable="false"
+          style={{ display: "none", transform: "translate(-50%, -50%)" }} />
         <div ref={cutLineRef} id="cut-line" className="cut-line" />
-
         <img ref={filletRef} id="fillet" className={`sprite fillet${filletVisible ? " visible" : ""}`}
           src={filletImg} draggable="false"
           style={{ display: filletVisible ? "block" : "none" }} />
 
         <img ref={bonefishRef} id="bonefish" className="sprite bonefish" src={bonefishImg}
-          draggable="false"
-          onPointerDown={onBonefishPointerDown}
+          draggable="false" onPointerDown={onBonefishPointerDown}
           style={{
             display: (stage === "fish_cut" || stage === "fillet_done") && bonefishVisible ? "block" : "none",
             cursor: bonefishTossed ? "default" : dragging === "bonefish" ? "grabbing" : "grab",
-            transform: dragging === "bonefish"
-              ? "translate(-50%,-50%) rotate(-6deg) scale(1.04)"
-              : "translate(-50%,-50%)",
+            transform: dragging === "bonefish" ? "translate(-50%,-50%) rotate(-6deg) scale(1.04)" : "translate(-50%,-50%)",
             filter: dragging === "bonefish" ? "drop-shadow(0 8px 16px rgba(0,0,0,0.35))" : "none",
           }} />
 
         <img ref={fishtailRef} id="fishtail" className="sprite fishtail" src={fishtailImg}
-          draggable="false"
-          onPointerDown={onFishtailPointerDown}
+          draggable="false" onPointerDown={onFishtailPointerDown}
           style={{
             display: (stage === "fish_cut" || stage === "fillet_done") && fishtailVisible ? "block" : "none",
             cursor: fishtailTossed ? "default" : dragging === "fishtail" ? "grabbing" : "grab",
-            transform: dragging === "fishtail"
-              ? "translate(-50%,-50%) rotate(5deg) scale(1.06)"
-              : "translate(-50%,-50%)",
+            transform: dragging === "fishtail" ? "translate(-50%,-50%) rotate(5deg) scale(1.06)" : "translate(-50%,-50%)",
             filter: dragging === "fishtail" ? "drop-shadow(0 8px 16px rgba(0,0,0,0.35))" : "none",
           }} />
 
         <img ref={knifeRef} id="knife" className="sprite knife" src={knifeImg}
-          draggable="false"
-          onPointerDown={onKnifePointerDown}
+          draggable="false" onPointerDown={onKnifePointerDown}
           style={{
             display: stage === "initial" ? "block" : "none",
             cursor: knifeCutting ? "default" : dragging === "knife" ? "grabbing" : "grab",
-            transform: dragging === "knife"
-              ? "translate(-50%,-50%) rotate(-10deg) scale(1.06) scaleX(-1)"
-              : "translate(-50%,-50%) scaleX(-1)",
+            transform: dragging === "knife" ? "translate(-50%,-50%) rotate(-10deg) scale(1.06) scaleX(-1)" : "translate(-50%,-50%) scaleX(-1)",
             filter: dragging === "knife" ? "drop-shadow(0 8px 20px rgba(0,0,0,0.4))" : "none",
           }} />
 
-        {/* Bins */}
-        <img ref={compostBinRef} className={getBinClass("compost")} src={compostbinImg} />
-        <img ref={recycleBinRef} className={getBinClass("recycle")} src={recyclebinImg} />
-        <img ref={trashBinRef} className={getBinClass("trash")} src={trashbinImg} />
-
+        <img ref={compostBinRef} className={getBinClass("compost")} src={compostbinImg} alt="" />
+        <img ref={recycleBinRef} className={getBinClass("recycle")} src={recyclebinImg} alt="" />
+        <img ref={trashBinRef} className={getBinClass("trash")} src={trashbinImg} alt="" />
         <div ref={zoneCompostRef} className="binZone" />
         <div ref={zoneRecycleRef} className="binZone" />
         <div ref={zoneTrashRef} className="binZone" />
 
-        {/* Dots */}
         <div className="dots">
           <div ref={dot0} className="dot" />
           <div ref={dot1} className="dot" />
@@ -633,26 +624,6 @@ export default function FishPrepGame() {
           <div ref={dot3} className="dot" />
         </div>
 
-        {/* Results overlay */}
-        <div id="results-overlay" className={`results-overlay${showResults ? "" : " hidden"}`}>
-          <div className="results-card">
-            <h2 className="results-title">Fish Prep Complete!</h2>
-            <div className="results-subtitle">Sustainability Rating</div>
-            <div className="results-stars" id="results-stars">
-              {[0, 1, 2].map((i) => (
-                <div key={i} className={`honey${honeyStars[i] ? " earned" : ""}`}>
-                  <img src={honeyStars[i] ? filledHoneyImg : blankHoneyImg} />
-                </div>
-              ))}
-            </div>
-            <div className="results-message">
-              {messages[sustainabilityScore] || messages[1]}
-            </div>
-            <button className="results-btn" onClick={handleContinue}>Continue</button>
-          </div>
-        </div>
-
-        {/* Settings button */}
         <button onClick={() => setShowSettings(true)} title="Settings"
           style={{
             position: "absolute", top: "14px", right: "14px", zIndex: 30,
@@ -660,8 +631,7 @@ export default function FishPrepGame() {
             background: "rgba(255,255,255,0.22)",
             backdropFilter: "blur(14px) saturate(1.6)",
             WebkitBackdropFilter: "blur(14px) saturate(1.6)",
-            border: "1px solid rgba(255,255,255,0.45)",
-            borderRadius: "14px",
+            border: "1px solid rgba(255,255,255,0.45)", borderRadius: "14px",
             boxShadow: "0 4px 18px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.5)",
             cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
             transition: "all 0.25s cubic-bezier(0.34,1.56,0.64,1)",
@@ -674,11 +644,225 @@ export default function FishPrepGame() {
             e.currentTarget.style.transform = "scale(1) rotate(0deg)";
             e.currentTarget.style.borderColor = "rgba(255,255,255,0.45)";
           }}>
-          <img src={settingsCogImg} alt="settings"
-            style={{ width: "26px", height: "26px", objectFit: "contain" }} />
+          <img src={settingsCogImg} alt="settings" style={{ width: "26px", height: "26px", objectFit: "contain" }} />
         </button>
       </div>
 
+      {/* Hint bar */}
+      {gameStarted && (
+        <div style={{
+          position: "fixed", bottom: "18px", left: "50%", transform: "translateX(-50%)",
+          fontSize: "0.82rem", fontWeight: 700, letterSpacing: "0.5px", zIndex: 15,
+          whiteSpace: "nowrap", pointerEvents: "none",
+          textShadow: "0 1px 4px rgba(0,0,0,0.4)",
+          background: hintDone ? "rgba(74,124,89,0.88)" : "rgba(184,92,32,0.88)",
+          backdropFilter: "blur(8px)",
+          color: "white", padding: "8px 20px", borderRadius: "50px",
+          border: "1px solid rgba(255,255,255,0.2)",
+          fontFamily: "'Fredoka One', cursive",
+          boxShadow: "0 4px 14px rgba(0,0,0,0.18)",
+          transition: "background 0.3s ease",
+        }}>
+          {hint}
+        </div>
+      )}
+
+      {/* Intro dialogue — exactly like river game */}
+      {!gameStarted && !showResults && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 50 }}>
+
+          {/* Skip button */}
+          <button
+            onClick={startGame}
+            onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+            onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+            style={{ ...btnStyle, position: "absolute", top: "3%", right: "3%", backgroundColor: "#e8e1cf", color: "#3d2e1e" }}>
+            Skip →
+          </button>
+
+          {/* Level menu button */}
+          <button
+            onClick={() => navigate("/level-selection")}
+            onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+            onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+            style={{ ...btnStyle, position: "absolute", top: "3%", left: "3%", backgroundColor: "#e8e1cf", color: "#3d2e1e" }}>
+            ← Level Menu
+          </button>
+
+          {/* Waving bear */}
+          <img
+            src={wavingBearImg}
+            alt="waving bear"
+            style={{
+              position: "absolute", bottom: 0, left: "2%",
+              height: "55vh", maxHeight: "420px",
+              objectFit: "contain", zIndex: 1,
+              filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.2))",
+              pointerEvents: "none",
+            }}
+          />
+
+          {/* Dialogue box */}
+          <div
+            onClick={handleDialogueNext}
+            style={{
+              position: "absolute", bottom: "4%", left: "50%",
+              transform: "translateX(-50%)",
+              width: "72vw", maxWidth: "860px",
+              cursor: "pointer", zIndex: 2,
+            }}
+          >
+            {/* Speaker tab */}
+            <div style={{
+              display: "inline-block",
+              background: "#f5eedc",
+              border: "3px solid #c8b89a",
+              borderBottom: "none",
+              borderRadius: "14px 14px 0 0",
+              padding: "6px 22px",
+              fontFamily: "'Fredoka One', cursive",
+              fontSize: "18px",
+              color: "#5a4a35",
+              marginLeft: "24px",
+              boxShadow: "0 -2px 8px rgba(0,0,0,0.06)",
+            }}>
+              {currentLine.speaker}
+            </div>
+
+            {/* Dialogue content */}
+            <div style={{
+              background: "#fdf6e3",
+              border: "3px solid #c8b89a",
+              borderRadius: "0 18px 18px 18px",
+              padding: "24px 32px",
+              boxShadow: "0 8px 30px rgba(0,0,0,0.18)",
+              textAlign: "left",
+            }}>
+              <p style={{
+                fontFamily: "'Fredoka One', cursive",
+                fontSize: "clamp(16px, 1.8vw, 22px)",
+                color: "#3d2e1e",
+                margin: 0, lineHeight: 1.6,
+                minHeight: "60px",
+              }}>
+                {currentLine.text}
+              </p>
+
+              <div style={{ display: "flex", alignItems: "center", marginTop: "16px", gap: "10px" }}>
+                {/* Back button */}
+                <button
+                  onClick={handleDialogueBack}
+                  disabled={dialogueIndex === 0}
+                  onMouseEnter={(e) => { if (dialogueIndex > 0) e.currentTarget.style.transform = "scale(1.1)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+                  style={{
+                    background: "transparent", border: "none",
+                    padding: "4px 12px",
+                    fontFamily: "'Fredoka One', cursive", fontSize: "16px",
+                    color: dialogueIndex === 0 ? "#c8b89a" : "#a08c72",
+                    cursor: dialogueIndex === 0 ? "not-allowed" : "pointer",
+                    transition: "transform 0.1s ease", flexShrink: 0,
+                  }}>
+                  ◀
+                </button>
+
+                {/* Dot indicators */}
+                {INTRO_DIALOGUE.map((_, i) => (
+                  <div key={i} style={{
+                    width: i === dialogueIndex ? "20px" : "8px",
+                    height: "8px", borderRadius: "999px",
+                    background: i === dialogueIndex ? "#c8b89a" : "#e0d5c0",
+                    transition: "width 0.2s ease", flexShrink: 0,
+                  }} />
+                ))}
+
+                <span style={{
+                  marginLeft: "auto",
+                  fontFamily: "'Fredoka One', cursive",
+                  fontSize: "14px", color: "#a08c72", flexShrink: 0,
+                }}>
+                  {isLastDialogue ? "Let's go! ▶" : "Click to continue ▶"}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Results screen */}
+      {showResults && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 200,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)",
+        }}>
+          <div style={{
+            width: "65vw", maxWidth: "860px",
+            background: "rgba(255,255,255,0.82)",
+            borderRadius: "35px", padding: "50px",
+            backdropFilter: "blur(18px)",
+            boxShadow: "0 25px 50px rgba(0,0,0,0.18)",
+            fontFamily: "'Fredoka One', cursive",
+            textAlign: "center",
+          }}>
+            <div style={{ fontSize: "clamp(2.5rem,6vw,4rem)", marginBottom: "8px" }}>🐟</div>
+            <h1 style={{ fontSize: "clamp(28px,5vw,52px)", margin: "0 0 8px", color: "#2c2316" }}>
+              Fish Prep Complete!
+            </h1>
+            <div style={{
+              fontSize: "14px", letterSpacing: "2px", opacity: 0.6,
+              textTransform: "uppercase", marginBottom: "18px", color: "#5a4a35",
+            }}>
+              Sustainability Rating
+            </div>
+
+            <div style={{ display: "flex", gap: "8px", justifyContent: "center", margin: "18px 0" }}>
+              {[0, 1, 2].map((i) => (
+                <div key={i} className={`honey${honeyStars[i] ? " earned pop" : ""}`}>
+                  <img src={honeyStars[i] ? filledHoneyImg : blankHoneyImg} alt="" />
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "center", gap: "32px", margin: "18px 0 28px", flexWrap: "wrap" }}>
+              <div style={{
+                background: "#e8e1cf", borderRadius: "22px",
+                padding: "18px 32px", boxShadow: "0 8px 15px rgba(0,0,0,0.1)",
+              }}>
+                <div style={{ fontSize: "14px", letterSpacing: "2px", opacity: 0.6, color: "#5a4a35" }}>
+                  SUSTAINABILITY
+                </div>
+                <div style={{ fontSize: "clamp(28px,4vw,42px)", color: "#5a4a35" }}>
+                  {sustainabilityScore} / 3
+                </div>
+              </div>
+            </div>
+
+            <div style={{ color: "#5c5040", marginBottom: "28px", fontSize: "clamp(13px,2.2vw,16px)", lineHeight: 1.45 }}>
+              {messages[sustainabilityScore] || messages[1]}
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "center", gap: "16px", flexWrap: "wrap" }}>
+              <button
+                onClick={() => navigate("/level-selection")}
+                onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+                onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                style={{ ...btnStyle, backgroundColor: "#e8e1cf", color: "#3d2e1e" }}>
+                ← Level Menu
+              </button>
+              <button
+                onClick={() => navigate("/level/3")}
+                onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+                onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                style={{ ...btnStyle, backgroundColor: "#7FBF3F", color: "white" }}>
+                Next Level →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Settings overlay */}
       {showSettings && (
         <div style={{ position: "fixed", inset: 0, zIndex: 60 }}>
           <Settings
