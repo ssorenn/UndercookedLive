@@ -1,17 +1,7 @@
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import homescreenImg from "../assets/trees_background1.png";
-
-const LEVELS = [
-  { id: 1, name: "Let's clean and collect fish!", stars: 3, unlocked: true },
-  { id: 2, name: "Prepare Your Fish", stars: 2, unlocked: true },
-  { id: 3, name: "Stack the Sushi", stars: 0, unlocked: false },
-  { id: 4, name: "Trash Sorting", stars: 0, unlocked: false },
-  { id: 5, name: "River Rescue", stars: 0, unlocked: false },
-  { id: 6, name: "Forest Cleanup", stars: 0, unlocked: false },
-  { id: 7, name: "Sorting Sprint", stars: 0, unlocked: false },
-  { id: 8, name: "Bear Builder", stars: 0, unlocked: false },
-  { id: 9, name: "Clean Air Quest", stars: 0, unlocked: false },
-];
+import { getLevelProgress } from "../utils/levelProgress";
 
 function StarRating({ stars, unlocked }) {
   return (
@@ -23,13 +13,13 @@ function StarRating({ stars, unlocked }) {
         marginTop: "10px",
       }}
     >
-      {[1, 2, 3].map((s) => (
+      {[1, 2, 3].map((star) => (
         <span
-          key={s}
+          key={star}
           style={{
             fontSize: "1.1rem",
-            color: unlocked && s <= stars ? "#FFD700" : "rgba(220,220,220,0.75)",
-            textShadow: unlocked && s <= stars ? "0 0 6px rgba(255,215,0,0.55)" : "none",
+            color: unlocked && star <= stars ? "#FFD700" : "rgba(220,220,220,0.75)",
+            textShadow: unlocked && star <= stars ? "0 0 6px rgba(255,215,0,0.55)" : "none",
           }}
         >
           ★
@@ -43,19 +33,19 @@ function LevelCard({ level, navigate }) {
   return (
     <div
       onClick={() => level.unlocked && navigate(`/level/${level.id}`)}
-      onMouseEnter={(e) => {
+      onMouseEnter={(event) => {
         if (level.unlocked) {
-          e.currentTarget.style.transform = "translateY(-5px) scale(1.02)";
-          e.currentTarget.style.boxShadow = "0 16px 28px rgba(0,0,0,0.22)";
-          e.currentTarget.style.borderColor = "rgba(255,255,255,0.55)";
+          event.currentTarget.style.transform = "translateY(-5px) scale(1.02)";
+          event.currentTarget.style.boxShadow = "0 16px 28px rgba(0,0,0,0.22)";
+          event.currentTarget.style.borderColor = "rgba(255,255,255,0.55)";
         }
       }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "translateY(0) scale(1)";
-        e.currentTarget.style.boxShadow = level.unlocked
+      onMouseLeave={(event) => {
+        event.currentTarget.style.transform = "translateY(0) scale(1)";
+        event.currentTarget.style.boxShadow = level.unlocked
           ? "0 10px 18px rgba(0,0,0,0.16)"
           : "0 8px 14px rgba(0,0,0,0.12)";
-        e.currentTarget.style.borderColor = level.unlocked
+        event.currentTarget.style.borderColor = level.unlocked
           ? "rgba(255,255,255,0.35)"
           : "rgba(255,255,255,0.18)";
       }}
@@ -151,6 +141,26 @@ function LevelCard({ level, navigate }) {
 
 export default function LevelSelection() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [levels, setLevels] = useState([]);
+
+  useEffect(() => {
+    const savedLevels = getLevelProgress();
+    setLevels(savedLevels);
+  }, [location]);
+
+  const buttonStyle = {
+    padding: "12px 34px",
+    borderRadius: "18px",
+    border: "none",
+    background: "#e8e1cf",
+    color: "#3d2e1e",
+    fontSize: "18px",
+    cursor: "pointer",
+    boxShadow: "0 8px 15px rgba(0,0,0,0.15)",
+    fontFamily: "'Fredoka One', cursive",
+    transition: "transform 0.12s ease, box-shadow 0.12s ease",
+  };
 
   return (
     <div>
@@ -246,7 +256,7 @@ export default function LevelSelection() {
               padding: "8px 4px 12px 4px",
             }}
           >
-            {LEVELS.map((level) => (
+            {levels.map((level) => (
               <LevelCard key={level.id} level={level} navigate={navigate} />
             ))}
           </div>
@@ -256,19 +266,20 @@ export default function LevelSelection() {
           style={{
             display: "flex",
             justifyContent: "center",
+            gap: "16px",
             marginTop: "20px",
             flexShrink: 0,
           }}
         >
           <button
             style={buttonStyle}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "scale(1.05)";
-              e.currentTarget.style.boxShadow = "0 14px 20px rgba(0,0,0,0.2)";
+            onMouseEnter={(event) => {
+              event.currentTarget.style.transform = "scale(1.05)";
+              event.currentTarget.style.boxShadow = "0 14px 20px rgba(0,0,0,0.2)";
             }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "scale(1)";
-              e.currentTarget.style.boxShadow = "0 8px 15px rgba(0,0,0,0.15)";
+            onMouseLeave={(event) => {
+              event.currentTarget.style.transform = "scale(1)";
+              event.currentTarget.style.boxShadow = "0 8px 15px rgba(0,0,0,0.15)";
             }}
             onClick={() => navigate("/")}
           >
@@ -289,28 +300,15 @@ export default function LevelSelection() {
           }
 
           .levelSelectionScroll::-webkit-scrollbar-thumb {
-            background: rgba(203, 214, 180, 0.6);
+            background: rgba(247,242,223,0.55);
             border-radius: 999px;
           }
 
           .levelSelectionScroll::-webkit-scrollbar-thumb:hover {
-            background: rgba(214, 226, 189, 0.82);
+            background: rgba(247,242,223,0.75);
           }
         `}
       </style>
     </div>
   );
 }
-
-const buttonStyle = {
-  padding: "14px 40px",
-  fontSize: "20px",
-  borderRadius: "18px",
-  border: "none",
-  background: "linear-gradient(180deg, rgba(243,236,217,0.98) 0%, rgba(232,225,207,0.96) 100%)",
-  cursor: "pointer",
-  boxShadow: "0 8px 15px rgba(0,0,0,0.15)",
-  fontFamily: "'Fredoka One', cursive",
-  color: "#2f2b25",
-  transition: "transform 0.1s ease, box-shadow 0.1s ease",
-};
