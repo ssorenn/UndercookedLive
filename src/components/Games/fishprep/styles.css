@@ -1,0 +1,371 @@
+:root{
+  --bg: #e8e0d0;
+  --hint-orange: #b85c20;
+  --hint-green: #4a7c59;
+}
+
+*{ box-sizing: border-box; }
+body{
+margin:0;
+font-family: 'Fredoka', Arial, sans-serif;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+background: #e8e0d0;
+}
+.page{
+  min-height: 100vh;
+  display:flex;
+  flex-direction: column;
+  align-items:center;
+  justify-content:center;
+  gap: 14px;
+  padding: 16px;
+  user-select: none;
+}
+
+.sprite{
+  position:absolute;
+  pointer-events: none; /* default */
+}
+
+.sprite.show{
+  opacity: 1;
+}
+
+.sprite.hide{
+  opacity: 0;
+}
+
+.knife, .bonefish, .fishtail{
+  pointer-events: auto; /* draggable */
+}
+#deadfish,
+#fillet,
+#bonefish,
+#fishtail{
+  filter: drop-shadow(0 14px 12px rgba(59, 34, 8, 0.29));
+}
+
+.dots{
+  position:absolute;
+  bottom: 10px;
+  right: 14px;
+  display:flex;
+  gap: 8px;
+  pointer-events:none;
+}
+.dot{
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #bbb;
+  transition: transform 180ms ease, background 180ms ease;
+}
+.dot.on{
+  background: var(--hint-orange);
+}
+.dot.current{
+  transform: scale(1.35);
+}
+
+/* Fillet pop-in */
+.fillet{
+  opacity: 0;
+  transform: scale(0.85);
+  transition: opacity 500ms ease, transform 500ms ease;
+}
+.fillet.visible{
+  opacity: 1;
+  transform: scale(1);
+}
+.hint{
+position:absolute;
+top:20px;
+left:50%;
+transform:translateX(-50%);
+
+background: rgba(184, 177, 91, 0.93);
+color:white;
+padding:12px 22px;
+border-radius:30px;
+border: 2px solid rgba(65, 41, 13, 0.6); 
+font-size:18px;
+z-index:100;
+}
+.scene{
+  width: min(1000px, 95vw);
+  aspect-ratio: 2048 / 1559;
+  background-image: url("../../../assets/sprites/fish-prep/background2.png"); 
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+}
+/* Sprites use center-based positioning */
+#deadfish, #bonefish, #fishtail, #fillet, #knife{
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
+/* Responsive sizes so they don't go off-screen on small devices */
+#deadfish{
+  width: clamp(180px, 30vw, 280px);
+}
+
+#bonefish{
+  width: clamp(150px, 25vw, 230px);
+  cursor: grab;
+  display: none; 
+}
+
+#fishtail{
+  width: clamp(60px, 10vw, 100px);
+  cursor: grab;
+  display: none;
+}
+
+#fillet{
+  width: clamp(170px, 29vw, 260px);
+  display: none;   
+}
+
+#knife{
+  width: clamp(55px, 11vw, 120px);   /* smaller when resting */
+  transform: translate(-50%, -50%) rotate(-70deg) scaleX(-1);
+  transition: transform 120ms ease, width 120ms ease;
+}
+#knife:hover{
+  transform: translate(-50%, -50%) rotate(-60deg) scaleX(-1);
+}
+
+.bin{
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: block;
+  opacity: 1;
+  z-index: 8;
+  pointer-events: none;
+
+  transition: transform 160ms ease;
+}
+
+.bin.open{
+  transform: translate(-50%, -65%) scale(1.08) rotate(-3deg);
+}
+@keyframes binPop{
+  0% { transform: translate(-50%, -50%) scale(1); }
+  60% { transform: translate(-50%, -68%) scale(1.12); }
+  100% { transform: translate(-50%, -65%) scale(1.08); }
+}
+
+.binZone{
+  position: absolute;
+}
+
+#bonefish, #knife{
+  z-index: 21;
+}
+#fishtail{
+  z-index: 20;
+}
+
+#deadfish, #fillet{
+  z-index: 10;
+}
+
+.bin{
+  z-index: 8;
+}
+
+.knife:hover, .bonefish:hover, .fishtail:hover{
+  transform: translate(-50%, -50%) scale(1.06);
+}
+
+.knife, .bonefish, .fishtail{
+  cursor: grab;
+}
+
+.knife:active, .bonefish:active, .fishtail:active{
+  cursor: grabbing;
+}
+
+/* Bin glow feedback after drop */
+@keyframes glowPulse {
+  0%   { filter: brightness(1); }
+  30%  { filter: brightness(1.3); }
+  100% { filter: brightness(1); }
+}
+
+.bin.glow-correct {
+  filter: drop-shadow(0 0 18px rgba(40, 200, 60, 0.9))
+          drop-shadow(0 0 40px rgba(40, 200, 60, 0.5));
+  animation: glowPulse 1s ease 1;
+}
+
+.bin.glow-wrong {
+  filter: drop-shadow(0 0 18px rgba(220, 40, 40, 0.9))
+          drop-shadow(0 0 40px rgba(220, 40, 40, 0.5));
+  animation: glowPulse 1s ease 1;
+}
+
+/* Results overlay */
+.results-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 1;
+  transition: opacity 700ms ease;
+}
+.results-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.results-card {
+  background: #f5f0e6;
+  border-radius: 24px;
+  padding: 36px 44px 30px;
+  min-width: 320px;
+  max-width: 88%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35), 0 0 0 4px rgba(255,255,255,0.12);
+  transform: scale(0.85) translateY(20px);
+  transition: transform 650ms cubic-bezier(.22,1.2,.36,1), opacity 550ms ease;
+}
+.results-overlay:not(.hidden) .results-card {
+  transform: scale(1) translateY(0);
+}
+
+.results-title {
+  font-family: 'Fredoka', Arial, sans-serif;
+  font-size: clamp(22px, 4vw, 34px);
+  color: #2c2316;
+  margin: 0 0 4px;
+  letter-spacing: -0.5px;
+}
+
+.results-subtitle {
+  font-size: clamp(13px, 2.4vw, 17px);
+  color: #8a7c6a;
+  margin-bottom: 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.results-stars {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.honey {
+  position: relative;
+  width: clamp(36px, 7vw, 56px);
+  height: clamp(36px, 7vw, 56px);
+  display: inline-block;
+  transition: transform 350ms ease;
+}
+
+.honey img {
+  width: clamp(55px, 10vw, 80px);
+  display: block;
+  transition: opacity 400ms ease;
+}
+
+.results-message {
+  font-size: clamp(13px, 2.2vw, 16px);
+  color: #5c5040;
+  margin-bottom: 22px;
+  line-height: 1.45;
+  min-height: 20px;
+}
+
+.results-btn {
+  background: #d6c9ab;
+  color: #3c3224;
+  border: none;
+  padding: 12px 36px;
+  border-radius: 30px;
+  font-size: clamp(14px, 2.4vw, 17px);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 150ms ease, transform 120ms ease;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.13);
+}
+.results-btn:hover {
+  background: #c9ba98;
+  transform: scale(1.04);
+}
+.results-btn:active {
+  transform: scale(0.97);
+}
+
+/* Slicing animation */
+@keyframes knifeSlice {
+  0%   { transform: translate(-150%, -50%) rotate(-20deg) scaleX(-1); opacity: 1; }
+  50%  { transform: translate(50%, -50%) rotate(-10deg) scaleX(-1); opacity: 1; }
+  100% { transform: translate(50%, -50%) rotate(-10deg) scaleX(-1) scale(0.9); opacity: 0; }
+}
+
+
+.knife-slicing {
+  animation: knifeSlice 500ms ease-in-out forwards;
+  width: clamp(70px, 12vw, 120px) !important;
+  z-index: 30 !important;
+  pointer-events: none !important;
+}
+
+@keyframes cutLineAppear {
+  0%   { transform: translate(-50%, -50%) scaleX(0); opacity: 0; }
+  40%  { transform: translate(-50%, -50%) scaleX(1); opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scaleX(1); opacity: 0; }
+}
+
+.cut-line.visible {
+  animation: cutLineAppear 600ms ease-out forwards;
+}
+
+.cut-line {
+  position: absolute;
+  width: clamp(160px, 26vw, 250px);
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9) 20%, rgba(255,255,255,1) 50%, rgba(255,255,255,0.9) 80%, transparent);
+  border-radius: 2px;
+  transform-origin: center center;
+  transform: translate(-50%, -50%) scaleX(0);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 25;
+  box-shadow: 0 0 8px rgba(255,255,255,0.6), 0 0 20px rgba(255,255,255,0.2);
+}
+
+
+.cut-line.visible {
+  animation: cutLineAppear 600ms ease-out forwards;
+}
+/* Fish tray grab zone */
+.fishTrayZone {
+  position: absolute;
+  cursor: grab;
+  z-index: 15;
+  border-radius: 8px;
+}
+.fishTrayZone:hover {
+  background: rgba(255,255,255,0.08);
+}
+.fishTrayZone:active {
+  cursor: grabbing;
+}
