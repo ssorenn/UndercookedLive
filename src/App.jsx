@@ -17,8 +17,8 @@ export default function App() {
         <Route path="/river-game" element={<RiverGame />} />
         <Route path="/story1" element={<Story1 />} />
         <Route path="/level-selection" element={<LevelSelection />} />
+        <Route path="/level/2" element={<FishPrepGame key={window.location.pathname} />} />
         <Route path="/level/:levelId" element={<RiverGame />} />
-        <Route path="/level/2" element={<FishPrepGame />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/info" element={<Info />} />
         <Route path="/auth" element={<AuthPage />} />
