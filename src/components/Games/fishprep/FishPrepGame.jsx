@@ -55,6 +55,8 @@ const INTRO_DIALOGUE = [
   { speaker: "Narrator", text: "Once cut, sort the fish bones and tail into the compost bin. Zero waste, maximum sustainability! ♻️" },
 ];
 
+const currentLevelId = 2; // Assuming this is level 2
+
 export default function FishPrepGame() {
   const navigate = useNavigate();
   const [showSettings, setShowSettings] = useState(false);
@@ -479,6 +481,9 @@ export default function FishPrepGame() {
         }, 600 + i * 450);
       }
     });
+
+    // Save the level result after showing results
+    saveLevelResult(currentLevelId, score);
   }, [showResults]);
 
   const onFishtrayPointerDown = (e) => {
@@ -577,7 +582,8 @@ export default function FishPrepGame() {
         <div ref={zoneFishtrayRef} className="fishTrayZone" onPointerDown={onFishtrayPointerDown} />
 
         <img ref={deadfishRef} id="deadfish" className="sprite" src={deadfishImg} draggable="false"
-          style={{ display: "none", transform: "translate(-50%, -50%)" }} />
+          style={{ display: "none", transform: "translate(-50%,-50%) rotate(15deg) scaleY(0.85) scaleX(0.9)"}}
+          />
         <div ref={cutLineRef} id="cut-line" className="cut-line" />
         <img ref={filletRef} id="fillet" className={`sprite fillet${filletVisible ? " visible" : ""}`}
           src={filletImg} draggable="false"

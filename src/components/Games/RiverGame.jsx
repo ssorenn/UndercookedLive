@@ -1,4 +1,5 @@
 // Toggle time cpy s.timeLeft =
+// Toggle time cpy s.timeLeft =
 
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -17,6 +18,8 @@ import salmonImg from "../../assets/sprites/river-game-sprites/salmon.png";
 import livesImg from "../../assets/sprites/river-game-sprites/lives.png";
 import wavingBearImg from "../../assets/sprites/river-game-sprites/wavingbear.png";
 import settingsCogImg from "../../assets/settings_cog.png";
+import blankHoneyImg from "../../assets/sprites/fish-prep/blankhoney.png";
+import filledHoneyImg from "../../assets/sprites/fish-prep/honey2.png";
 
 const A = {
   grass: grassImg,
@@ -289,6 +292,24 @@ const STYLES = `
     padding:5px 16px; border-radius:50px;
     border:1px solid rgba(255,255,255,0.15);
   }
+
+  /* ── Honey jars (matches FishPrepGame) ───────────────────────────────── */
+  .honey {
+    width: clamp(64px, 9vw, 110px);
+    height: clamp(64px, 9vw, 110px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0.35;
+    transform: scale(0.88);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  .honey img { width: 100%; height: 100%; object-fit: contain; }
+  .honey.earned { opacity: 1; transform: scale(1); }
+  .honey.pop { animation: honeyPop 0.55s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+  @keyframes honeyPop {
+    0%   { transform: scale(0.6); opacity: 0.4; }
+    60%  { transform: scale(1.25); opacity: 1; }
+    100% { transform: scale(1);   opacity: 1; }
+  }
 `;
 
 function QuitConfirmModal({ onConfirm, onCancel }) {
@@ -379,6 +400,7 @@ export default function RiverGame() {
   const [dialogueIndex, setDialogueIndex] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
   const [endScreen, setEndScreen] = useState(null);
+  const [honeyStars, setHoneyStars] = useState([false, false, false]);
 
   const stateRef = useRef({
     score: 0,
@@ -427,6 +449,23 @@ export default function RiverGame() {
   const rampUpRef = useRef(null);
   const updateTimerRef = useRef(null);
   const endGameRef = useRef(null);
+
+  // Animate honey jars when end screen appears
+  useEffect(() => {
+    if (!endScreen) return;
+    setHoneyStars([false, false, false]);
+    [0, 1, 2].forEach((i) => {
+      if (i < endScreen.earnedStars) {
+        setTimeout(() => {
+          setHoneyStars((prev) => {
+            const next = [...prev];
+            next[i] = true;
+            return next;
+          });
+        }, 600 + i * 450);
+      }
+    });
+  }, [endScreen]);
 
   const layout = useCallback(() => {
     const s = stateRef.current;
@@ -676,29 +715,6 @@ export default function RiverGame() {
       const earnedStars = calculateEarnedStars(s.score, s.fishCount);
       saveLevelResult(currentLevelId, earnedStars);
 
-      /*
-      async function saveProgressToSupabaseLater() {
-        const userId = "replace-with-real-user-id";
-
-        await supabase.from("level_progress").upsert({
-          user_id: userId,
-          level_id: currentLevelId,
-          stars: earnedStars,
-          unlocked: true,
-        });
-
-        if (earnedStars > 0 && currentLevelId < totalLevelCount) {
-          await supabase.from("level_progress").upsert({
-            user_id: userId,
-            level_id: currentLevelId + 1,
-            unlocked: true,
-          });
-        }
-      }
-
-      saveProgressToSupabaseLater();
-      */
-
       setEndScreen({
         timeUp,
         score: s.score,
@@ -932,6 +948,7 @@ export default function RiverGame() {
 
     setGameStarted(true);
     setEndScreen(null);
+    setHoneyStars([false, false, false]);
 
     layout();
     setMode("trash");
@@ -1213,19 +1230,18 @@ export default function RiverGame() {
               <div style={{ color: "#e74c3c", fontSize: "18px", marginBottom: "12px" }}>Hard Mode</div>
             )}
 
+            {/* Honey jar rating — matches FishPrepGame */}
+            <div style={{
+              fontSize: "14px", letterSpacing: "2px", opacity: 0.6,
+              textTransform: "uppercase", marginBottom: "4px", color: "#5a4a35",
+            }}>
+              Rating
+            </div>
             <div style={{ display: "flex", gap: "8px", justifyContent: "center", margin: "18px 0" }}>
-              {[1, 2, 3].map((star) => (
-                <span
-                  key={star}
-                  style={{
-                    fontSize: "clamp(2rem,5vw,3.2rem)",
-                    color: star <= endScreen.earnedStars ? "#FFD700" : "#cfcfcf",
-                    textShadow:
-                      star <= endScreen.earnedStars ? "0 0 10px rgba(255,215,0,0.7)" : "none",
-                  }}
-                >
-                  ★
-                </span>
+              {[0, 1, 2].map((i) => (
+                <div key={i} className={`honey${honeyStars[i] ? " earned pop" : ""}`}>
+                  <img src={honeyStars[i] ? filledHoneyImg : blankHoneyImg} alt="" />
+                </div>
               ))}
             </div>
 
