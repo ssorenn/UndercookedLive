@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fish Fillet Mini Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <div class="page">
+      <div id="scene" class="scene">
+        <div id="hint" class="hint">Pick up the knife and drop it on the fish!</div>
+        <div id="zone-fishtray" class="fishTrayZone"></div>
+
+        <img id="deadfish" class="sprite" src="images/deadfish.png" alt="dead fish" draggable="false" />
+        <div id="cut-line" class="cut-line"></div>
+        <img id="fillet" class="sprite fillet" src="images/fillet.png" alt="fillet" draggable="false" />
+        <img id="bonefish" class="sprite bonefish" src="images/fishbone2.png" alt="fish bone" draggable="false" />
+        <img id="fishtail" class="sprite fishtail" src="images/fishtail.png" alt="fish tail" draggable="false" />
+        <img id="knife" class="sprite knife" src="images/knife.png" alt="knife" draggable="false" />
+
+        <img id="compostbin" class="bin" src="images/compostbin.png" alt="compost bin" />
+        <img id="recyclebin" class="bin" src="images/recyclebin.png" alt="recycle bin" />
+        <img id="trashbin" class="bin" src="images/trashbin.png" alt="trash bin" />
+
+        <div id="zone-compost" class="binZone"></div>
+        <div id="zone-recycle" class="binZone"></div>
+        <div id="zone-trash" class="binZone"></div>
+
+        <div class="dots" aria-hidden="true">
+          <div class="dot" data-stage="grab_fish"></div>
+          <div class="dot" data-stage="initial"></div>
+          <div class="dot" data-stage="fish_cut"></div>
+          <div class="dot" data-stage="fillet_done"></div>
+        </div>
+        <div id="results-overlay" class="results-overlay hidden">
+          <div class="results-card">
+            <h2 class="results-title">Fish Prep Complete!</h2>
+            <div class="results-subtitle" id="results-subtitle">Sustainability Rating</div>
+            <div class="results-stars" id="results-stars">
+              <div class="honey" data-i="0"><img src="images/blankhoney.png" alt="honey"></div>
+              <div class="honey" data-i="1"><img src="images/blankhoney.png" alt="honey"></div>
+              <div class="honey" data-i="2"><img src="images/blankhoney.png" alt="honey"></div>
+            </div>
+            <div class="results-message" id="results-message"></div>
+            <button class="results-btn" id="results-continue">Continue</button>
+          </div>
+        </div>
+      </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
