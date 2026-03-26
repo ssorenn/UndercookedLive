@@ -41,9 +41,11 @@ export default function Game() {
       about:
         "Sustainabear is a culinary-themed game where players match ingredients to complete recipes while managing a growing restaurant. Success depends not only on speed and strategy, but also on making sustainable choices that reduce food waste and improve efficiency.",
       team: "This game is presented to you by the Overcooked Team.\n...",
+      achievements: "- 🍣 First Dish: Finish the first chapter\n\n- ⭐️ Triple Threat: Earn 3 stars on any level.\n\n- 🌱 Sustainable Master: Reach maximum sustainability score.\n\n- 🎯 On a Roll! : Complete 5 levels in a row without failing. \n\n- 🏅 Perfect Plate: Earn 3 stars on ALL levels.\n\n- 💎 Cosmetic Completionist: Collect every cosmetic in the game.\n",
     }),
     []
   );
+
 
   const active = (key) => tab === key;
 
@@ -119,6 +121,16 @@ export default function Game() {
             </button>
 
             <button
+              onClick={() => setTab("achievements")}
+              style={{
+                ...tabBtn,
+                ...(active("achievements") ? tabBtnActive : null),
+              }}
+            >
+              achievements
+            </button>
+
+            <button
               onClick={() => setTab("team")}
               style={{
                 ...tabBtn,
@@ -175,6 +187,36 @@ export default function Game() {
                   >
                     <div style={{ fontSize: "18px", opacity: 0.9 }}>Level {r.level}</div>
                     <div style={{ fontSize: "20px" }}>{r.text}</div>
+                  </div>
+                ))}
+              </div>
+            ) : tab === "achievements" ? (
+              <div
+                style={{
+                  height: "480px",
+                  overflowY: "auto",
+                  paddingRight: "12px",
+                }}
+                className="recipesScroll"
+              >
+                <div style={{ fontSize: "24px", marginBottom: "14px", color: "rgba(0,0,0,0.9)" }}>
+                  🏆 Achievements 🏆
+                </div>
+
+                {content.achievements.split("\n").filter(line => line.trim()).map((achievement, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      padding: "16px 20px",
+                      borderRadius: "18px",
+                      background: "rgba(255,255,255,0.55)",
+                      boxShadow: "0 8px 15px rgba(0,0,0,0.10)",
+                      marginBottom: "14px",
+                      fontSize: "18px",
+                      color: "rgba(0,0,0,0.9)",
+                    }}
+                  >
+                    {achievement}
                   </div>
                 ))}
               </div>

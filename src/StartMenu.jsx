@@ -179,12 +179,13 @@ export default function StartMenu() {
         style={{
           position: "fixed", bottom: "2%", left: "2%", zIndex: 3,
           padding: "8px 14px", fontSize: "12px", borderRadius: "12px",
-          border: "none", backgroundColor: "rgba(232, 225, 207, 0.92)",
-          cursor: "pointer", boxShadow: "0 6px 12px rgba(0,0,0,0.15)",
+          border: "none", backgroundColor: "rgba(223, 56, 10, 0.92)",
+          cursor: "pointer", boxShadow: "0 6px 12px rgb(253, 253, 253)",
           fontFamily: "'Fredoka One', cursive", transition: "transform 0.1s ease",
+          color: "white",
         }}
       >
-        Clear Cache
+        Clear Progress?
       </button>
 
       {/* User info */}

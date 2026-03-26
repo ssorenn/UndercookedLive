@@ -286,13 +286,14 @@ function setStage(next) {
   placeSprites();
 }
 
+
 // Results popup 
 function showResults() {
   const stars = resultsStars.querySelectorAll(".honey");
   stars.forEach(s => {
-  s.classList.remove("earned", "pop");
-  s.querySelector("img").src = "../../../assets/sprites/fish-prep/blankhoney.png";
-});
+    s.classList.remove("earned", "pop");
+    s.querySelector("img").src = "/src/assets/sprites/fish-prep/blankhoney.png";
+  });
 
   const messages = {
     3: "Perfect! You composted all the fish waste. Great sustainability practice!",
@@ -309,7 +310,7 @@ function showResults() {
         const img = s.querySelector("img");
         img.style.opacity = "0";
         setTimeout(() => {
-          img.src = "../../../assets/sprites/fish-prep/honey2.png";
+          img.src = "/src/assets/sprites/fish-prep/honey2.png";
           img.style.opacity = "1";
         }, 200);
         s.classList.add("earned", "pop");
@@ -319,11 +320,13 @@ function showResults() {
   });
 }
 
+// ← Replace the old resultsContinue listener with this:
 resultsContinue.addEventListener("click", () => {
   resultsOverlay.classList.add("hidden");
-  window.dispatchEvent(new CustomEvent("fishPrepComplete", {
-    detail: { stars: sustainabilityScore }
-  }));
+  window.parent.postMessage({
+    type: "fishPrepComplete",
+    stars: sustainabilityScore
+  }, "*");
 });
 
 // resize

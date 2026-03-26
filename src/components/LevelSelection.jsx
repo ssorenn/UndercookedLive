@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import homescreenImg from "../assets/trees_background1.png";
 import { getLevelProgress } from "../utils/levelProgress";
@@ -143,11 +143,15 @@ export default function LevelSelection() {
   const navigate = useNavigate();
   const location = useLocation();
   const [levels, setLevels] = useState([]);
+  const scrollContainerRef = useRef(null);
 
   useEffect(() => {
     const savedLevels = getLevelProgress();
     setLevels(savedLevels);
   }, [location]);
+
+  const levelsPerPage = 4;
+  const totalChapters = Math.ceil(levels.length / levelsPerPage);
 
   const buttonStyle = {
     padding: "12px 34px",
@@ -240,24 +244,64 @@ export default function LevelSelection() {
         <div
           style={{
             flex: 1,
-            overflowY: "auto",
-            paddingRight: "14px",
-            paddingLeft: "6px",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: "30px",
+            overflow: "hidden",
           }}
-          className="levelSelectionScroll"
         >
           <div
+            ref={scrollContainerRef}
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-              gap: "26px 30px",
-              justifyItems: "center",
-              alignItems: "start",
-              padding: "8px 4px 12px 4px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "60px",
+              overflowY: "auto",
+              width: "100%",
+              height: "100%",
+              paddingBottom: "12px",
             }}
           >
-            {levels.map((level) => (
-              <LevelCard key={level.id} level={level} navigate={navigate} />
+            {Array.from({ length: totalChapters }).map((_, chapterIdx) => (
+              <div
+                key={chapterIdx}
+                style={{
+                  flexShrink: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "20px",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "28px",
+                    fontWeight: "bold",
+                    color: "#f7f2df",
+                    textShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Chapter {chapterIdx + 1}
+                </div>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                    gap: "26px 30px",
+                    width: "480px",
+                  }}
+                >
+                  {levels
+                    .slice(chapterIdx * levelsPerPage, (chapterIdx + 1) * levelsPerPage)
+                    .map((level) => (
+                      <LevelCard key={level.id} level={level} navigate={navigate} />
+                    ))}
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -290,23 +334,7 @@ export default function LevelSelection() {
 
       <style>
         {`
-          .levelSelectionScroll::-webkit-scrollbar {
-            width: 10px;
-          }
-
-          .levelSelectionScroll::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.12);
-            border-radius: 999px;
-          }
-
-          .levelSelectionScroll::-webkit-scrollbar-thumb {
-            background: rgba(247,242,223,0.55);
-            border-radius: 999px;
-          }
-
-          .levelSelectionScroll::-webkit-scrollbar-thumb:hover {
-            background: rgba(247,242,223,0.75);
-          }
+          button:focus { outline: none; }
         `}
       </style>
     </div>
