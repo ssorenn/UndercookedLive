@@ -291,7 +291,7 @@ function showResults() {
   const stars = resultsStars.querySelectorAll(".honey");
   stars.forEach(s => {
   s.classList.remove("earned", "pop");
-  s.querySelector("img").src = "images/blankhoney.png";
+  s.querySelector("img").src = "../../../assets/sprites/fish-prep/blankhoney.png";
 });
 
   const messages = {
@@ -309,7 +309,7 @@ function showResults() {
         const img = s.querySelector("img");
         img.style.opacity = "0";
         setTimeout(() => {
-          img.src = "images/honey2.png";
+          img.src = "../../../assets/sprites/fish-prep/honey2.png";
           img.style.opacity = "1";
         }, 200);
         s.classList.add("earned", "pop");

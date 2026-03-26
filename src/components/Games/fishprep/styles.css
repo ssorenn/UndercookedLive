@@ -97,8 +97,7 @@ z-index:100;
 .scene{
   width: min(1000px, 95vw);
   aspect-ratio: 2048 / 1559;
-
-  background-image: url("images/background2.png");
+  background-image: url("../../../assets/sprites/fish-prep/background2.png"); 
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
