@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import homescreenImg from "../assets/trees_background1.png";
 import { getLevelProgress } from "../utils/levelProgress";
+import { supabase } from "../supabase";
 
 function StarRating({ stars, unlocked }) {
   return (
@@ -139,6 +140,27 @@ function LevelCard({ level, navigate }) {
   );
 }
 
+function buildLevelsFromProfile(profile, localLevels) {
+  const currentLevel = profile?.level ?? 0;
+
+  const starMap = {
+    1: profile?.level1_stars ?? 0,
+    2: profile?.level2_stars ?? 0,
+    3: profile?.level3_stars ?? 0,
+    4: profile?.level4_stars ?? 0,
+  };
+
+  return localLevels.map((level) => {
+    const levelId = Number(level.id);
+
+    return {
+      ...level,
+      stars: starMap[levelId] ?? 0,
+      unlocked: currentLevel >= levelId && currentLevel > 0,
+    };
+  });
+}
+
 export default function LevelSelection() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -146,8 +168,53 @@ export default function LevelSelection() {
   const scrollContainerRef = useRef(null);
 
   useEffect(() => {
-    const savedLevels = getLevelProgress();
-    setLevels(savedLevels);
+    let isMounted = true;
+
+    async function loadLevels() {
+      const localLevels = getLevelProgress();
+
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (!session?.user) {
+          if (isMounted) {
+            setLevels(localLevels);
+          }
+          return;
+        }
+
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("level, level1_stars, level2_stars, level3_stars, level4_stars")
+          .eq("user_id", session.user.id)
+          .single();
+
+        if (error || !profile) {
+          if (isMounted) {
+            setLevels(localLevels);
+          }
+          return;
+        }
+
+        const mergedLevels = buildLevelsFromProfile(profile, localLevels);
+
+        if (isMounted) {
+          setLevels(mergedLevels);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setLevels(localLevels);
+        }
+      }
+    }
+
+    loadLevels();
+
+    return () => {
+      isMounted = false;
+    };
   }, [location]);
 
   const levelsPerPage = 4;

@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { supabase } from "../supabase";
 import storyImg from "../assets/story_pngs/story1.1.png";
 import storyImg2 from "../assets/story_pngs/story1.2.png";
 import storyImg3 from "../assets/story_pngs/story1.3.png";
@@ -27,19 +28,25 @@ export default function Story1() {
   const markStoryAsSeen = async () => {
     localStorage.setItem("guestHasSeenStory1", "true");
 
-    /*
-    const { data: sessionData } = await supabase.auth.getSession();
-    const currentSession = sessionData?.session ?? null;
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-    if (currentSession?.user) {
+      if (!session?.user) {
+        return;
+      }
+
       await supabase
         .from("profiles")
-        .upsert({
-          id: currentSession.user.id,
-          has_seen_story1: true,
-        });
+        .update({
+          level: 1,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", session.user.id);
+    } catch (error) {
+      console.error("Failed to save story progress:", error);
     }
-    */
   };
 
   const goToLevelSelection = async () => {
@@ -71,9 +78,8 @@ export default function Story1() {
   const backgroundImg = DIALOGUE_BG[index] || storyImg3;
   const isLast = index === DIALOGUE.length - 1;
 
-  const textBoxPosition = index === 0
-    ? { bottom: "4%", top: "auto" }
-    : { top: "4%", bottom: "auto" };
+  const textBoxPosition =
+    index === 0 ? { bottom: "4%", top: "auto" } : { top: "4%", bottom: "auto" };
 
   return (
     <div

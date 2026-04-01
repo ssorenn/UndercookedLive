@@ -1,11 +1,10 @@
-// Toggle time cpy s.timeLeft =
-// Toggle time cpy s.timeLeft =
+// Toggle time Ctrl + F s.timeLeft =
 
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Settings from "../Settings";
 import { saveLevelResult } from "../../utils/levelProgress";
-// import { supabase } from "../../supabase";
+import { supabase } from "../../supabase";
 
 // ── Asset imports ────────────────────────────────────────────────────────────
 import grassImg from "../../assets/sprites/river-game-sprites/grass.png";
@@ -696,7 +695,7 @@ export default function RiverGame() {
   }, []);
 
   const endGame = useCallback(
-    (timeUp = false) => {
+    async (timeUp = false) => {
       const s = stateRef.current;
       s.gameRunning = false;
       setGameStarted(false);
@@ -713,7 +712,55 @@ export default function RiverGame() {
       document.querySelectorAll(".rr-item").forEach((i) => i.remove());
 
       const earnedStars = calculateEarnedStars(s.score, s.fishCount);
+
+      // always save locally first, so guest mode still works
       saveLevelResult(currentLevelId, earnedStars);
+
+      // if logged in, also save to Supabase
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (session?.user) {
+          const starColumnMap = {
+            1: "level1_stars",
+            2: "level2_stars",
+            3: "level3_stars",
+            4: "level4_stars",
+          };
+
+          const starColumn = starColumnMap[currentLevelId];
+
+          if (starColumn) {
+            const { data: currentProfile, error: fetchError } = await supabase
+              .from("profiles")
+              .select("level, level1_stars, level2_stars, level3_stars, level4_stars, sustain_score")
+              .eq("user_id", session.user.id)
+              .single();
+
+            if (!fetchError && currentProfile) {
+              const currentSavedStars = currentProfile[starColumn] ?? 0;
+              const newBestStars = Math.max(currentSavedStars, earnedStars);
+              const nextUnlockedLevel = Math.max(currentProfile.level ?? 0, currentLevelId + 1);
+              const currentSustainScore = currentProfile.sustain_score ?? 0;
+              const nextSustainScore = Math.max(0, currentSustainScore - currentSavedStars + newBestStars);
+
+              await supabase
+                .from("profiles")
+                .update({
+                  [starColumn]: newBestStars,
+                  level: nextUnlockedLevel,
+                  sustain_score: nextSustainScore,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq("user_id", session.user.id);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Failed to save level progress to Supabase:", error);
+      }
 
       setEndScreen({
         timeUp,
