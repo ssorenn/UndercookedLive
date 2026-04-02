@@ -79,9 +79,25 @@ export default function StartMenu() {
 
     try {
       if (session?.user) {
-        const currentUserId = session.user.id;
-        console.log("Supabase check is temporarily disabled. User id:", currentUserId);
-        navigate("/story1");
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("level")
+          .eq("user_id", session.user.id)
+          .single();
+
+        if (error) {
+          console.error("Failed to fetch profile level:", error);
+          navigate("/story1");
+          return;
+        }
+
+        const currentLevel = profile?.level ?? 0;
+
+        if (currentLevel === 0) {
+          navigate("/story1");
+        } else {
+          navigate("/level-selection");
+        }
         return;
       }
 
@@ -103,7 +119,7 @@ export default function StartMenu() {
   }
 
   function handleClearCache() {
-    const confirmed = window.confirm("Clear all local test data and reset progress?");
+    const confirmed = window.confirm("Clear all local guest test data and reset local progress?");
     if (!confirmed) return;
 
     localStorage.clear();
@@ -115,80 +131,113 @@ export default function StartMenu() {
 
   return (
     <div>
-      {/* Background */}
       <img
         src={homescreenImg}
         alt="Home"
         style={{
           position: "fixed",
-          top: 0, left: 0,
-          width: "100%", height: "100%",
-          objectFit: "cover", objectPosition: "center",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          objectPosition: "center",
         }}
       />
 
-      {/* Play button */}
       <img
         src={playBtnImg}
         alt="Play"
         onClick={handlePlayClick}
-        onMouseEnter={(e) => { e.currentTarget.style.transform = "translateX(-50%) scale(1.05)"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.transform = "translateX(-50%) scale(1)"; }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "translateX(-50%) scale(1.05)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "translateX(-50%) scale(1)";
+        }}
         style={{
-          position: "fixed", bottom: "10%", left: "51%",
-          transform: "translateX(-50%)", width: "20vw",
+          position: "fixed",
+          bottom: "10%",
+          left: "51%",
+          transform: "translateX(-50%)",
+          width: "20vw",
           cursor: playBusy ? "wait" : "pointer",
-          zIndex: 1, transition: "transform 0.15s ease",
+          zIndex: 1,
+          transition: "transform 0.15s ease",
           opacity: playBusy ? 0.9 : 1,
         }}
       />
 
-      {/* Settings button — opens modal */}
       <img
         src={settingsBtnImg}
         alt="Settings"
         onClick={() => setShowSettings(true)}
-        onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.05)"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "scale(1.05)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "scale(1)";
+        }}
         style={{
-          position: "fixed", bottom: "10%", left: "63%",
-          width: "15vw", cursor: "pointer",
-          zIndex: 1, transition: "transform 0.15s ease",
+          position: "fixed",
+          bottom: "10%",
+          left: "63%",
+          width: "15vw",
+          cursor: "pointer",
+          zIndex: 1,
+          transition: "transform 0.15s ease",
         }}
       />
 
-      {/* Info button */}
       <img
         src={infoBtnImg}
         alt="Info"
         onClick={() => navigate("/info")}
-        onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.05)"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "scale(1.05)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "scale(1)";
+        }}
         style={{
-          position: "fixed", bottom: "10%", left: "23%",
-          width: "15vw", cursor: "pointer",
-          zIndex: 1, transition: "transform 0.15s ease",
+          position: "fixed",
+          bottom: "10%",
+          left: "23%",
+          width: "15vw",
+          cursor: "pointer",
+          zIndex: 1,
+          transition: "transform 0.15s ease",
         }}
       />
 
-      {/* Clear cache */}
       <button
         onClick={handleClearCache}
-        onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.05)"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "scale(1.05)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "scale(1)";
+        }}
         style={{
-          position: "fixed", bottom: "2%", left: "2%", zIndex: 3,
-          padding: "8px 14px", fontSize: "12px", borderRadius: "12px",
-          border: "none", backgroundColor: "rgba(223, 56, 10, 0.92)",
-          cursor: "pointer", boxShadow: "0 6px 12px rgb(253, 253, 253)",
-          fontFamily: "'Fredoka One', cursive", transition: "transform 0.1s ease",
+          position: "fixed",
+          bottom: "2%",
+          left: "2%",
+          zIndex: 3,
+          padding: "8px 14px",
+          fontSize: "12px",
+          borderRadius: "12px",
+          border: "none",
+          backgroundColor: "rgba(223, 56, 10, 0.92)",
+          cursor: "pointer",
+          boxShadow: "0 6px 12px rgb(253, 253, 253)",
+          fontFamily: "'Fredoka One', cursive",
+          transition: "transform 0.1s ease",
           color: "white",
         }}
       >
         Clear Progress?
       </button>
 
-      {/* User info */}
       <div style={{ position: "fixed", top: 16, right: 16, zIndex: 2 }}>
         {session && (
           <>
@@ -212,7 +261,10 @@ export default function StartMenu() {
               Playing as Guest: <strong>{guestProfile.display_name}</strong>
             </p>
             <button
-              onClick={() => { endGuestMode(); navigate("/auth"); }}
+              onClick={() => {
+                endGuestMode();
+                navigate("/auth");
+              }}
               style={{ cursor: "pointer" }}
             >
               Exit Guest Mode
@@ -221,7 +273,6 @@ export default function StartMenu() {
         )}
       </div>
 
-      {/* Settings modal — sits on top of the home background */}
       {showSettings && (
         <div style={{ position: "fixed", inset: 0, zIndex: 10 }}>
           <Settings onClose={() => setShowSettings(false)} />
