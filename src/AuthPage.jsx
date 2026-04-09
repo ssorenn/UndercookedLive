@@ -41,7 +41,7 @@ export default function AuthPage() {
         });
         if (error) throw error;
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email: cleanEmail,
           password,
           options: {
@@ -50,6 +50,15 @@ export default function AuthPage() {
         });
 
         if (error) throw error;
+
+        if (data?.user) {
+          const { error: profileError } = await supabase.from("profiles").upsert({
+            user_id: data.user.id,
+            display_name: displayName,
+          });
+
+          if (profileError) throw profileError;
+        }
 
         setMsg(
           "Signed up! If email confirmation is enabled, check your inbox."
