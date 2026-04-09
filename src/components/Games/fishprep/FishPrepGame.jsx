@@ -470,11 +470,12 @@ export default function FishPrepGame() {
   useEffect(() => {
     if (!showResults) return;
 
-    const score = sustainabilityRef.current;
+    const stars = sustainabilityRef.current;
+    const actualScore = stars * 130;
 
     setHoneyStars([false, false, false]);
     [0, 1, 2].forEach((i) => {
-      if (i < score) {
+      if (i < stars) {
         setTimeout(() => {
           setHoneyStars((prev) => {
             const next = [...prev];
@@ -487,7 +488,7 @@ export default function FishPrepGame() {
 
     async function saveProgress() {
       // always save locally first so guest mode still works
-      saveLevelResult(currentLevelId, score);
+      saveLevelResult(currentLevelId, stars);
 
       try {
         const {
@@ -500,7 +501,7 @@ export default function FishPrepGame() {
 
         const { data: currentProfile, error: fetchError } = await supabase
           .from("profiles")
-          .select("level, level1_stars, level2_stars, level3_stars, level4_stars, sustain_score")
+          .select("level, level1_stars, level2_stars, level3_stars, level4_stars, level1_score, level2_score, level3_score, level4_score, sustain_score")
           .eq("user_id", session.user.id)
           .single();
 
@@ -510,15 +511,20 @@ export default function FishPrepGame() {
         }
 
         const currentSavedStars = currentProfile.level2_stars ?? 0;
-        const newBestStars = Math.max(currentSavedStars, score);
+        const newBestStars = Math.max(currentSavedStars, stars);
+
+        const currentSavedScore = currentProfile.level2_score ?? 0;
+        const newBestScore = Math.max(currentSavedScore, actualScore);
+
         const nextUnlockedLevel = Math.max(currentProfile.level ?? 0, 3);
         const currentSustainScore = currentProfile.sustain_score ?? 0;
-        const nextSustainScore = Math.max(0, currentSustainScore - currentSavedStars + newBestStars);
+        const nextSustainScore = Math.max(0, currentSustainScore - currentSavedScore + newBestScore);
 
         const { error: updateError } = await supabase
           .from("profiles")
           .update({
             level2_stars: newBestStars,
+            level2_score: newBestScore,
             level: nextUnlockedLevel,
             sustain_score: nextSustainScore,
             updated_at: new Date().toISOString(),
