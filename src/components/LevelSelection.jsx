@@ -4,28 +4,41 @@ import homescreenImg from "../assets/trees_background1.png";
 import { getLevelProgress } from "../utils/levelProgress";
 import { supabase } from "../supabase";
 
+import blankHoneyImg from "../assets/sprites/fish-prep/blankhoney.png";
+import filledHoneyImg from "../assets/sprites/fish-prep/honey2.png";
+
 function StarRating({ stars, unlocked }) {
   return (
     <div
       style={{
         display: "flex",
-        gap: "4px",
+        gap: "6px",
         justifyContent: "center",
+        alignItems: "center",
         marginTop: "10px",
+        minHeight: "30px",
       }}
     >
-      {[1, 2, 3].map((star) => (
-        <span
-          key={star}
-          style={{
-            fontSize: "1.1rem",
-            color: unlocked && star <= stars ? "#FFD700" : "rgba(220,220,220,0.75)",
-            textShadow: unlocked && star <= stars ? "0 0 6px rgba(255,215,0,0.55)" : "none",
-          }}
-        >
-          ★
-        </span>
-      ))}
+      {[1, 2, 3].map((star) => {
+        const earned = unlocked && star <= stars;
+
+        return (
+          <img
+            key={star}
+            src={earned ? filledHoneyImg : blankHoneyImg}
+            alt=""
+            draggable={false}
+            style={{
+              width: "24px",
+              height: "24px",
+              objectFit: "contain",
+              opacity: unlocked ? 1 : 0.55,
+              transform: earned ? "scale(1)" : "scale(0.92)",
+              filter: earned ? "drop-shadow(0 2px 4px rgba(0,0,0,0.18))" : "none",
+            }}
+          />
+        );
+      })}
     </div>
   );
 }

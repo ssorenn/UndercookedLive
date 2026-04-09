@@ -176,6 +176,7 @@ export default function Settings({ onClose, background, extraButtons }) {
 
     localStorage.removeItem("guestHasSeenStory1");
     localStorage.removeItem("levelProgress");
+    localStorage.removeItem("gameSettings");
 
     try {
       const {
@@ -187,10 +188,15 @@ export default function Settings({ onClose, background, extraButtons }) {
           .from("profiles")
           .update({
             level: 0,
+            sustain_score: 0,
             level1_stars: 0,
             level2_stars: 0,
             level3_stars: 0,
             level4_stars: 0,
+            level1_score: 0,
+            level2_score: 0,
+            level3_score: 0,
+            level4_score: 0,
             updated_at: new Date().toISOString(),
           })
           .eq("user_id", currentSession.user.id);
