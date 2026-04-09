@@ -730,26 +730,38 @@ export default function RiverGame() {
             4: "level4_stars",
           };
 
-          const starColumn = starColumnMap[currentLevelId];
+          const scoreColumnMap = {
+            1: "level1_score",
+            2: "level2_score",
+            3: "level3_score",
+            4: "level4_score",
+          };
 
+          const starColumn = starColumnMap[currentLevelId];
+          const scoreColumn = scoreColumnMap[currentLevelId];
           if (starColumn) {
             const { data: currentProfile, error: fetchError } = await supabase
               .from("profiles")
-              .select("level, level1_stars, level2_stars, level3_stars, level4_stars, sustain_score")
+              .select("level, level1_stars, level2_stars, level3_stars, level4_stars, level1_score, level2_score, level3_score, level4_score, sustain_score")
               .eq("user_id", session.user.id)
               .single();
 
             if (!fetchError && currentProfile) {
               const currentSavedStars = currentProfile[starColumn] ?? 0;
               const newBestStars = Math.max(currentSavedStars, earnedStars);
+
+              const currentSavedScore = currentProfile[scoreColumn] ?? 0;
+              const newBestScore = Math.max(currentSavedScore, s.score);
+
               const nextUnlockedLevel = Math.max(currentProfile.level ?? 0, currentLevelId + 1);
               const currentSustainScore = currentProfile.sustain_score ?? 0;
-              const nextSustainScore = Math.max(0, currentSustainScore - currentSavedStars + newBestStars);
+              const nextSustainScore = Math.max(0, currentSustainScore - currentSavedScore + newBestScore);
 
               await supabase
                 .from("profiles")
                 .update({
                   [starColumn]: newBestStars,
+                  [scoreColumn]: newBestScore,
                   level: nextUnlockedLevel,
                   sustain_score: nextSustainScore,
                   updated_at: new Date().toISOString(),
