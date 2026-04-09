@@ -5,6 +5,7 @@ import homescreenImg from "./assets/homescreen.jpg";
 import playBtnImg from "./assets/play_button.png";
 import settingsBtnImg from "./assets/settings_button.png";
 import infoBtnImg from "./assets/info_button.png";
+import PlayerProfile from "./components/playerProfile";
 
 import Settings from "./components/Settings";
 
@@ -67,11 +68,6 @@ export default function StartMenu() {
 
   const guestMode = isGuestMode();
   const guestProfile = getGuestProfile();
-
-  const userLabel =
-    session?.user?.user_metadata?.display_name ||
-    session?.user?.email ||
-    "Player";
 
   async function handlePlayClick() {
     if (playBusy) return;
@@ -238,40 +234,22 @@ export default function StartMenu() {
         Clear Progress?
       </button>
 
-      <div style={{ position: "fixed", top: 16, right: 16, zIndex: 2 }}>
-        {session && (
-          <>
-            <p style={{ color: "black", margin: "0 0 8px 0" }}>
-              Logged in as User: <strong>{userLabel}</strong>
-            </p>
-            <button
-              onClick={async () => {
-                await supabase.auth.signOut();
-                navigate("/auth");
-              }}
-              style={{ cursor: "pointer" }}
-            >
-              Log out
-            </button>
-          </>
-        )}
-        {!session && guestMode && guestProfile && (
-          <>
-            <p style={{ color: "black", margin: "0 0 8px 0" }}>
-              Playing as Guest: <strong>{guestProfile.display_name}</strong>
-            </p>
-            <button
-              onClick={() => {
-                endGuestMode();
-                navigate("/auth");
-              }}
-              style={{ cursor: "pointer" }}
-            >
-              Exit Guest Mode
-            </button>
-          </>
-        )}
-      </div>
+<PlayerProfile
+  username={
+    session?.user?.user_metadata?.display_name ||
+    guestProfile?.display_name ||
+    "Player"
+  }
+  isGuest={!session && guestMode && !!guestProfile}
+  onLogout={async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
+  }}
+  onLogin={() => {
+    endGuestMode();
+    navigate("/auth");
+  }}
+/>
 
       {showSettings && (
         <div style={{ position: "fixed", inset: 0, zIndex: 10 }}>
