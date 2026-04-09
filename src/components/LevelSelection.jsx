@@ -344,45 +344,70 @@ export default function LevelSelection() {
               paddingBottom: "12px",
             }}
           >
-            {Array.from({ length: totalChapters }).map((_, chapterIdx) => (
-              <div
-                key={chapterIdx}
-                style={{
-                  flexShrink: 0,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: "20px",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: "28px",
-                    fontWeight: "bold",
-                    color: "#f7f2df",
-                    textShadow: "0 2px 8px rgba(0,0,0,0.3)",
-                    marginBottom: "8px",
-                  }}
-                >
-                  Chapter {chapterIdx + 1}
-                </div>
+{Array.from({ length: totalChapters }).map((_, chapterIdx) => (
+  <div
+    key={chapterIdx}
+    style={{
+      flexShrink: 0,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      gap: "20px",
+    }}
+  >
+    <div
+      style={{
+        fontSize: "28px",
+        fontWeight: "bold",
+        color: "#f7f2df",
+        textShadow: "0 2px 8px rgba(0,0,0,0.3)",
+        marginBottom: "8px",
+      }}
+    >
+      Chapter {chapterIdx + 1}
+    </div>
 
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                    gap: "26px 30px",
-                    width: "480px",
-                  }}
-                >
-                  {levels
-                    .slice(chapterIdx * levelsPerPage, (chapterIdx + 1) * levelsPerPage)
-                    .map((level) => (
-                      <LevelCard key={level.id} level={level} navigate={navigate} />
-                    ))}
-                </div>
-              </div>
-            ))}
+    <div style={{ position: "relative" }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+          gap: "26px 30px",
+          width: "480px",
+          opacity: chapterIdx >= 1 ? 0.3 : 1,
+          filter: chapterIdx >= 1 ? "blur(2px)" : "none",
+          pointerEvents: chapterIdx >= 1 ? "none" : "auto",
+          transition: "opacity 0.2s ease",
+        }}
+      >
+        {levels
+          .slice(chapterIdx * levelsPerPage, (chapterIdx + 1) * levelsPerPage)
+          .map((level) => (
+            <LevelCard key={level.id} level={level} navigate={navigate} />
+          ))}
+      </div>
+
+      {chapterIdx >= 1 && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "28px",
+            color: "#f7f2df",
+            fontFamily: "'Fredoka One', cursive",
+            textShadow: "0 2px 12px rgba(0,0,0,0.5)",
+            letterSpacing: "1px",
+          }}
+        >
+          Coming soon...
+        </div>
+      )}
+    </div>
+  </div>
+))}
           </div>
         </div>
 
