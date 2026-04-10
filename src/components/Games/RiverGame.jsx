@@ -886,21 +886,27 @@ export default function RiverGame() {
             stateRef.current.fishCount++;
             stateRef.current.trashCombo = 0;
             if(type === 'salmonImg') {
+              stateRef.current.score += 10;
               updateScore(10);
             }
             else if(type === 'mackerelImg') {
+              stateRef.current.score += 20;
               updateScore(20);
             }
             else if(type === 'red_snapperImg') {
+              stateRef.current.score += 30;
               updateScore(30);
             }
             else if(type === 'yellowfinImg') {
+              stateRef.current.score += 40;
               updateScore(40);
             }
             else if(type === 'tunaImg') {
+              stateRef.current.score += 50;
               updateScore(50);
             }
             else {
+              stateRef.current.score += 100;
               updateScore(100);
             }
             updateFishCount();
