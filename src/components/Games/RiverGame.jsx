@@ -17,7 +17,7 @@ import salmonImg from "../../assets/sprites/river-game-sprites/salmon.png";
 import tunaImg from "../../assets/sprites/river-game-sprites/tuna.png";
 import mackerelImg from "../../assets/sprites/river-game-sprites/mackerel.png";
 import yellowfinImg from "../../assets/sprites/river-game-sprites/yellowfin.png";
-import red_snapperImg from "../../assets/sprites/river-game-sprites/red snapper.png";
+import red_snapperImg from "../../assets/sprites/river-game-sprites/red_snapper.png";
 import livesImg from "../../assets/sprites/river-game-sprites/lives.png";
 import wavingBearImg from "../../assets/sprites/river-game-sprites/wavingbear.png";
 import settingsCogImg from "../../assets/settings_cog.png";
